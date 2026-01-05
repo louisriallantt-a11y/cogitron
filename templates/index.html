@@ -1,89 +1,102 @@
-<script>
-    let currentDisc = "general";
-
-    async function login() {
-        const u = document.getElementById('user-name').value.trim();
-        if(!u) {
-            alert("Merci d'entrer un identifiant.");
-            return;
-        }
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>COGITRON SECURE</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root { --bg: #121212; --panel: #1e1e1e; --accent: #00ff88; --text: #e0e0e0; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; overflow: hidden; }
         
-        console.log("Tentative de connexion pour :", u);
+        /* LOGIN OVERLAY */
+        #login-overlay { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .auth-box { background: var(--panel); padding: 30px; border-radius: 8px; border: 1px solid #333; width: 300px; text-align: center; }
+        input { width: 90%; padding: 12px; margin: 10px 0; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
+        .btn-main { width: 100%; padding: 12px; background: var(--accent); color: black; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* APP LAYOUT */
+        #app { display: none; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background: var(--panel); border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-view { flex: 1; overflow-y: auto; padding: 20px; }
+        .input-area { padding: 20px; background: var(--bg); border-top: 1px solid #333; display: flex; gap: 10px; }
+        
+        .msg-container { margin-bottom: 20px; animation: fadeIn 0.3s; }
+        .label { font-size: 0.8em; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        .user-text { background: #2a2a2a; padding: 12px; border-radius: 8px; }
+        .ia-text { background: #1e1e1e; padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
 
-        try {
-            const res = await fetch('/login', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({username: u}) 
+    <div id="login-overlay">
+        <div class="auth-box">
+            <h2 style="color:var(--accent)">COGITRON OS</h2>
+            <input type="text" id="user-name" placeholder="Nom d'utilisateur">
+            <input type="password" id="user-pass" placeholder="Mot de passe">
+            <button class="btn-main" onclick="auth('login')">CONNEXION</button>
+            <p style="margin-top:15px; font-size: 0.8em; color:#888; cursor:pointer" onclick="auth('register')">Pas de compte ? S'inscrire</p>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="sidebar">
+            <div style="padding:20px; font-weight:bold; border-bottom:1px solid #333">👤 {{ user }}</div>
+            <div style="flex:1; padding:10px;" id="liste"></div>
+            <a href="/logout" style="padding:15px; color:#ff4444; text-decoration:none; font-size:0.9em;">Déconnexion</a>
+        </div>
+        <div class="main">
+            <div id="chat-view"></div>
+            <div class="input-area">
+                <input type="text" id="user-in" placeholder="Envoyez un message..." style="flex:1">
+                <button onclick="envoyer()" style="background:var(--accent); border:none; padding:0 20px; cursor:pointer">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function auth(type) {
+            const u = document.getElementById('user-name').value;
+            const p = document.getElementById('user-pass').value;
+            const res = await fetch('/' + type, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
             });
-
-            if (res.ok) {
-                // CACHER le login et AFFICHER l'app
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                console.log("Connexion réussie !");
-                chargerListe();
-            } else {
-                alert("Erreur lors de la connexion au serveur.");
-            }
-        } catch (error) {
-            console.error("Erreur réseau :", error);
-            alert("Le serveur ne répond pas.");
+            const data = await res.json();
+            if(res.ok) {
+                if(type === 'register') alert("Compte créé ! Connectez-vous.");
+                else location.reload();
+            } else alert(data.message);
         }
-    }
 
-    async function envoyer() {
-        const i = document.getElementById('user-in');
-        if(!i.value.trim()) return;
-        const text = i.value;
-        i.value = "";
+        async function envoyer() {
+            const input = document.getElementById('user-in');
+            const box = document.getElementById('chat-view');
+            if(!input.value.trim()) return;
 
-        const box = document.getElementById('chat-view');
-        box.innerHTML += `
-            <div class="msg-container">
-                <div class="label">Utilisateur</div>
-                <div class="user-text">${text}</div>
-            </div>`;
-        
-        const res = await fetch('/chat', { 
-            method: 'POST', 
-            headers: {'Content-Type': 'application/json'}, 
-            body: JSON.stringify({message: text, id_discussion: currentDisc}) 
-        });
-        const data = await res.json();
-        
-        box.innerHTML += `
-            <div class="msg-container">
-                <div class="label" style="color:var(--accent)">Cogitron</div>
-                <div class="ia-text">${marked.parse(data.reponse)}</div>
-            </div>`;
-        
-        box.scrollTop = box.scrollHeight;
-    }
-
-    async function chargerListe() {
-        const res = await fetch('/get_discussions');
-        const data = await res.json();
-        const l = document.getElementById('liste');
-        l.innerHTML = data.discussions.map(d => `
-            <div class="chat-item" onclick="selectDisc('${d}')">
-                🕒 ${d.replace('.json','')}
-            </div>`).join('');
-    }
-
-    function selectDisc(id) {
-        currentDisc = id.replace('.json','');
-        document.getElementById('chat-view').innerHTML = `<p style="color:#444; text-align:center;">Archive chargée : ${currentDisc}</p>`;
-    }
-
-    function nouveauChat() {
-        let n = prompt("Nom de la nouvelle archive ?");
-        if(n) { 
-            currentDisc = n; 
-            document.getElementById('chat-view').innerHTML = ""; 
-            alert("Nouvelle archive '" + n + "' créée.");
+            const msg = input.value;
+            input.value = "";
+            box.innerHTML += `<div class="msg-container"><div class="label">Moi</div><div class="user-text">${msg}</div></div>`;
+            
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: msg})
+            });
+            const data = await res.json();
+            box.innerHTML += `<div class="msg-container"><div class="label" style="color:var(--accent)">Cogitron</div><div class="ia-text">${marked.parse(data.reponse)}</div></div>`;
+            box.scrollTop = box.scrollHeight;
         }
-    }
 
-    document.getElementById('user-in').onkeypress = (e) => { if(e.key === 'Enter') envoyer(); };
-</script>
+        // Si déjà connecté, on affiche l'app
+        {% if current_user.is_authenticated %}
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+        {% endif %}
+
+        document.getElementById('user-in').onkeypress = (e) => { if(e.key === 'Enter') envoyer(); };
+    </script>
+</body>
+</html>
