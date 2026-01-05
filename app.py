@@ -1,36 +1,74 @@
-from flask import Flask, render_template, request, jsonify, session
-import ia
 import os
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+import sqlite3
+from ia import ia_repond
 
 app = Flask(__name__)
-app.secret_key = "cogitron_secret_key_2026"
+app.config['SECRET_KEY'] = 'cle-secrete-tres-difficile'
+
+# Configuration de la base de données SQLite
+def init_db():
+    with sqlite3.connect('database.db') as conn:
+        conn.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)')
+init_db()
+
+# Configuration de Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin):
+    def __init__(self, id, username):
+        self.id = id
+        self.username = username
+
+@login_manager.user_loader
+def load_user(user_id):
+    with sqlite3.connect('database.db') as conn:
+        curr = conn.cursor()
+        curr.execute("SELECT id, username FROM users WHERE id = ?", (user_id,))
+        user = curr.fetchone()
+        if user:
+            return User(user[0], user[1])
+    return None
 
 @app.route('/')
+@login_required
 def index():
-    return render_template('index.html')
+    return render_template('index.html', user=current_user.username)
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.json.get("username", "").lower().strip()
-    if not username: return jsonify({"status": "error"}), 400
-    session['user'] = username
-    return jsonify({"status": "ok"})
+    data = request.json
+    with sqlite3.connect('database.db') as conn:
+        curr = conn.cursor()
+        curr.execute("SELECT id, username, password FROM users WHERE username = ?", (data['username'],))
+        user = curr.fetchone()
+        if user and check_password_hash(user[2], data['password']):
+            user_obj = User(user[0], user[1])
+            login_user(user_obj)
+            return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Identifiants incorrects"}), 401
 
-@app.route('/get_discussions')
-def get_discs():
-    user = session.get('user')
-    if not user: return jsonify({"discussions": []})
-    user_path = os.path.join(ia.DOSSIER_HISTORIQUE, user)
-    if not os.path.exists(user_path): return jsonify({"discussions": []})
-    return jsonify({"discussions": [f for f in os.listdir(user_path) if f.endswith('.json')]})
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    hashed_pw = generate_password_hash(data['password'])
+    try:
+        with sqlite3.connect('database.db') as conn:
+            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (data['username'], hashed_pw))
+            return jsonify({"status": "success"})
+    except:
+        return jsonify({"status": "error", "message": "Nom d'utilisateur déjà pris"}), 400
 
 @app.route('/chat', methods=['POST'])
+@login_required
 def chat():
-    user = session.get('user', 'invite')
     data = request.json
-    # Cogitron répond directement
-    reponse = ia.ia_repond(data.get("message"), f"{user}/{data.get('id_discussion')}")
+    reponse = ia_repond(data['message'], current_user.username)
     return jsonify({"reponse": reponse})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
