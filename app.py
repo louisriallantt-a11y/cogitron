@@ -15,9 +15,8 @@ login_manager.login_view = 'index'
 
 # --- CONNEXION BLINDÉE ---
 def get_db_connection():
-    # Suppression de tout ce qui peut gêner dans l'URL
-    # Format direct sans fioritures
-    db_url = "postgresql://postgres:lvaEThDKHQeeE5pJ@db.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres"
+    # En ajoutant "direct.", on force souvent le passage par IPv4, ce qui évite l'erreur "Network unreachable"
+    db_url = "postgresql://postgres:lvaEThDKHQeeE5pJ@direct.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres?sslmode=require"
     return psycopg2.connect(db_url)
 
 class User(UserMixin):
