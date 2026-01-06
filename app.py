@@ -9,40 +9,41 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
+# --- CONFIG LOGIN MANAGER ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'index'
+
 # --- CONNEXION SUPABASE ---
 def get_db_connection():
-    # Render va lire l'URI que tu as collée dans DATABASE_URL
+    # Utilise l'URL que tu as mise dans les variables d'environnement sur Render
     conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
     return conn
 
 def init_db():
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            # Table des utilisateurs
             cur.execute('''CREATE TABLE IF NOT EXISTS users 
                             (id SERIAL PRIMARY KEY, 
                              username TEXT UNIQUE, password TEXT, 
                              color TEXT DEFAULT '#00ff88', 
                              is_admin INTEGER DEFAULT 0, 
                              is_banned INTEGER DEFAULT 0)''')
-            # Table des messages (Mémoire de l'IA)
             cur.execute('''CREATE TABLE IF NOT EXISTS messages 
                             (id SERIAL PRIMARY KEY, user_id INTEGER, 
                              content TEXT, role TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-            # Table des suggestions (Boîte à idées)
             cur.execute('''CREATE TABLE IF NOT EXISTS suggestions 
                             (id SERIAL PRIMARY KEY, username TEXT, idea TEXT)''')
             conn.commit()
 init_db()
 
-# --- GESTION DES SESSIONS ---
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'index'
-
 class User(UserMixin):
     def __init__(self, id, username, color, is_admin, is_banned):
-        self.id, self.username, self.color, self.is_admin, self.is_banned = id, username, color, is_admin, is_banned
+        self.id = id
+        self.username = username
+        self.color = color
+        self.is_admin = is_admin
+        self.is_banned = is_banned
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -55,7 +56,7 @@ def load_user(user_id):
     except: return None
     return None
 
-# --- ROUTES AUTHENTIFICATION ---
+# --- ROUTES ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -90,7 +91,6 @@ def login():
                 return jsonify({"status": "success"})
     return jsonify({"message": "Erreur de connexion"}), 401
 
-# --- ROUTES CHAT & ADMIN ---
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
