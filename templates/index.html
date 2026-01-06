@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Cogitron Omega</title>
+    <title>Cogitron Ω</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
                     </div>
                 </div>
             {% else %}
-                <button onclick="document.getElementById('auth-modal').style.display='flex'">Se connecter</button>
+                <button class="dropbtn" onclick="document.getElementById('auth-modal').style.display='flex'">Se connecter</button>
             {% endif %}
         </div>
     </nav>
@@ -29,73 +29,67 @@
     <div id="auth-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="document.getElementById('auth-modal').style.display='none'">&times;</span>
-            <h2>Connexion / Inscription</h2>
-            <input type="text" id="username" placeholder="Nom d'utilisateur"><br><br>
-            <input type="password" id="password" placeholder="Mot de passe"><br><br>
-            <button onclick="login()">Se connecter</button>
-            <button onclick="register()">S'inscrire</button>
+            <h2>Accès Cogitron</h2>
+            <input type="text" id="username" placeholder="Pseudo">
+            <input type="password" id="password" placeholder="Code secret">
+            <div style="margin-top: 20px;">
+                <button class="btn-admin" onclick="login()">Connexion</button>
+                <button class="btn-admin" style="background:#444; color:white;" onclick="register()">Créer compte</button>
+            </div>
         </div>
     </div>
 
     <div class="chat-container">
         <div id="chat-box"></div>
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="Posez votre question...">
-            <button onclick="sendMessage()">Envoyer</button>
+        <div class="input-area" style="display:flex; gap:10px; margin-top:20px;">
+            <input type="text" id="user-input" style="flex:1; padding:10px; border-radius:5px; border:1px solid #333; background:#222; color:white;" placeholder="Message...">
+            <button class="btn-admin" onclick="sendMessage()">Envoyer</button>
         </div>
     </div>
 
     <script>
-        // Fonction sécurisée pour le JSON
-        async function fetchJSON(url, options) {
-            const res = await fetch(url, options);
-            const contentType = res.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                return await res.json();
-            } else {
-                console.error("Le serveur n'a pas renvoyé de JSON mais du HTML !");
-                alert("Erreur serveur : Vérifie ta base de données sur Render.");
-                return null;
-            }
-        }
-
         async function login() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-            const data = await fetchJSON('/login', {
+            const res = await fetch('/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-            if(data && data.status === 'success') location.reload();
+            const data = await res.json();
+            if(data.status === 'success') location.reload();
+            else alert(data.message);
         }
 
         async function register() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-            const data = await fetchJSON('/register', {
+            const res = await fetch('/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-            if(data && data.status === 'success') alert("Inscrit ! Connecte-toi.");
+            if(res.ok) alert("Compte créé ! Connectez-vous.");
+            else alert("Erreur (Pseudo déjà pris ?)");
         }
 
         async function sendMessage() {
-            let input = document.getElementById('user-input');
-            let box = document.getElementById('chat-box');
+            const input = document.getElementById('user-input');
+            const box = document.getElementById('chat-box');
             if(!input.value) return;
-            box.innerHTML += `<div class="message user-msg"><b>Moi:</b> ${input.value}</div>`;
             
-            const data = await fetchJSON('/chat', {
+            box.innerHTML += `<div class="message user-msg">${input.value}</div>`;
+            const text = input.value;
+            input.value = "";
+
+            const res = await fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: input.value})
+                body: JSON.stringify({message: text})
             });
-            if(data) {
-                box.innerHTML += `<div class="message ia-msg"><b>IA:</b> ${data.reponse}</div>`;
-            }
-            input.value = "";
+            const data = await res.json();
+            box.innerHTML += `<div class="message ia-msg">${data.reponse}</div>`;
+            box.scrollTop = box.scrollHeight;
         }
     </script>
 </body>
