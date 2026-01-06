@@ -9,37 +9,16 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
-# --- CONFIG LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
 
-# --- CONNEXION SUPABASE ---
+# --- CONNEXION BLINDÉE ---
 def get_db_connection():
-    # ON FORCE L'URL ICI (Pas de crochets, port standard)
-    # Si cette URL ne marche pas, c'est que l'ID projet 'avwtqyixixkwcbhbrgcb' est incorrect
+    # Suppression de tout ce qui peut gêner dans l'URL
+    # Format direct sans fioritures
     db_url = "postgresql://postgres:lvaEThDKHQeeE5pJ@db.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres"
-    
-    # On force le SSL pour Supabase
-    return psycopg2.connect(db_url, sslmode='require')
-
-def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS users 
-                    (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, 
-                     color TEXT DEFAULT '#00ff88', is_admin INTEGER DEFAULT 0, is_banned INTEGER DEFAULT 0)''')
-    cur.execute('''CREATE TABLE IF NOT EXISTS messages 
-                    (id SERIAL PRIMARY KEY, user_id INTEGER, content TEXT, role TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    conn.commit()
-    cur.close()
-    conn.close()
-
-# Initialisation silencieuse
-try:
-    init_db()
-except Exception as e:
-    print(f"CRASH DB: {e}")
+    return psycopg2.connect(db_url)
 
 class User(UserMixin):
     def __init__(self, id, username, color, is_admin, is_banned):
@@ -56,22 +35,26 @@ def load_user(user_id):
     except: return None
 
 @app.route('/')
-def index(): return render_template('index.html')
+def index():
+    return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
-    u, p = data.get('username'), data.get('password')
-    color = "#00ff88"
     try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute('INSERT INTO users (username, password, color) VALUES (%s, %s, %s)',
-                             (u, generate_password_hash(p), color))
-                conn.commit()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # On vérifie/crée la table juste avant au cas où
+        cur.execute('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, color TEXT DEFAULT "#00ff88", is_admin INTEGER DEFAULT 0, is_banned INTEGER DEFAULT 0)')
+        cur.execute('INSERT INTO users (username, password) VALUES (%s, %s)', 
+                    (data['username'], generate_password_hash(data['password'])))
+        conn.commit()
+        cur.close()
+        conn.close()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        # Ici on renvoie l'erreur réelle en JSON pour ne plus avoir l'erreur <!DOCTYPE
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -84,13 +67,14 @@ def login():
                 if user and check_password_hash(user['password'], data['password']):
                     login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
                     return jsonify({"status": "success"})
-    except: pass
-    return jsonify({"status": "error"}), 401
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    msg = request.json['message']
+    msg = request.json.get('message')
     reponse = ia_repond(msg, current_user.username)
     return jsonify({"reponse": reponse})
 
