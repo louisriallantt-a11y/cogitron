@@ -1,24 +1,30 @@
 import os
 from groq import Groq
 
-# Assure-toi d'avoir mis ta clé API dans les variables Render sous le nom GROQ_API_KEY
-client = Groq(api_key=os.environ.get("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"))
+# Remplace par ta vraie clé API Groq
+# Tu peux aussi mettre os.environ.get('GROQ_API_KEY') si tu l'as configurée sur Render
+GROQ_API_KEY = "ta_cle_api_ici" 
 
-def ia_repond(message_utilisateur, nom_utilisateur):
+client = Groq(api_key=GROQ_API_KEY)
+
+def ia_repond(message_utilisateur, pseudo):
     try:
-        chat_completion = client.chat.completions.create(
+        # Prompt système pour donner une personnalité à ton IA
+        system_prompt = f"Tu es Cogitron Omega, une IA futuriste. Tu parles à {pseudo}."
+        
+        completion = client.chat.completions.create(
+            # On utilise le modèle le plus stable (Llama 3.1 8b)
+            model="llama-3.1-8b-instant",
             messages=[
-                {
-                    "role": "system",
-                    "content": f"Tu es Cogitron, une IA futuriste et amicale. Tu parles avec {nom_utilisateur}. Sois bref et efficace."
-                },
-                {
-                    "role": "user",
-                    "content": message_utilisateur,
-                }
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message_utilisateur}
             ],
-            model="llama-3.1-8b-instant", # Modèle mis à jour
+            temperature=0.7,
+            max_tokens=500
         )
-        return chat_completion.choices[0].message.content
+        
+        return completion.choices[0].message.content
+
     except Exception as e:
-        return f"Désolé, j'ai une petite erreur technique : {str(e)}"
+        print(f"Erreur IA : {e}")
+        return "Désolé, mon cerveau de silicium surchauffe... (Erreur de connexion avec l'IA)"
