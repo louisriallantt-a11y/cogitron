@@ -31,7 +31,7 @@
             <span class="close" onclick="document.getElementById('auth-modal').style.display='none'">&times;</span>
             <h2>Accès Cogitron</h2>
             <input type="text" id="username" placeholder="Pseudo">
-            <input type="password" id="password" placeholder="Code secret">
+            <input type="password" id="password" placeholder="Mot de passe">
             <div style="margin-top: 20px;">
                 <button class="btn-admin" onclick="login()">Connexion</button>
                 <button class="btn-admin" style="background:#444; color:white;" onclick="register()">Créer compte</button>
@@ -42,7 +42,7 @@
     <div class="chat-container">
         <div id="chat-box"></div>
         <div class="input-area" style="display:flex; gap:10px; margin-top:20px;">
-            <input type="text" id="user-input" style="flex:1; padding:10px; border-radius:5px; border:1px solid #333; background:#222; color:white;" placeholder="Message...">
+            <input type="text" id="user-input" placeholder="Ecris ici...">
             <button class="btn-admin" onclick="sendMessage()">Envoyer</button>
         </div>
     </div>
@@ -69,27 +69,35 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-            if(res.ok) alert("Compte créé ! Connectez-vous.");
-            else alert("Erreur (Pseudo déjà pris ?)");
+            if(res.ok) alert("Compte créé ! Connecte-toi.");
+            else alert("Erreur : Pseudo déjà pris.");
         }
 
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
             if(!input.value) return;
-            
-            box.innerHTML += `<div class="message user-msg">${input.value}</div>`;
+            box.innerHTML += `<div class="message user-msg"><b>Toi:</b> ${input.value}</div>`;
             const text = input.value;
             input.value = "";
-
             const res = await fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({message: text})
             });
             const data = await res.json();
-            box.innerHTML += `<div class="message ia-msg">${data.reponse}</div>`;
+            box.innerHTML += `<div class="message ia-msg"><b>Cogitron:</b> ${data.reponse}</div>`;
             box.scrollTop = box.scrollHeight;
+        }
+
+        async function openAdmin() {
+            const res = await fetch('/admin_stats');
+            const data = await res.json();
+            if(data.users) {
+                let txt = "UTILISATEURS :\n";
+                data.users.forEach(u => txt += `- ${u.username} (Admin: ${u.is_admin})\n`);
+                alert(txt);
+            } else { alert("Accès refusé."); }
         }
     </script>
 </body>
