@@ -2,7 +2,7 @@ import os
 from groq import Groq
 
 # Assure-toi d'avoir mis ta clé API dans les variables Render sous le nom GROQ_API_KEY
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+client = Groq(api_key=os.environ.get("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"))
 
 def ia_repond(message_utilisateur, nom_utilisateur):
     try:
