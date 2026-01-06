@@ -17,7 +17,7 @@ login_manager.login_view = 'index'
 # --- CONNEXION SUPABASE ---
 def get_db_connection():
     # Utilise l'URL que tu as mise dans les variables d'environnement sur Render
-    conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+    conn = psycopg2.connect(os.environ.get('postgresql://postgres:[lvaEThDKHQeeE5pJ]@db.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres'))
     return conn
 
 def init_db():
