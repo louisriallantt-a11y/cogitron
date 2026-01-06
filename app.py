@@ -1,6 +1,5 @@
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import sqlite3
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,83 +8,79 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
+# --- CONFIG LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
 
-# --- CONNEXION BLINDÉE ---
+# --- CONNEXION SQLITE (Simple & Local) ---
 def get_db_connection():
-    # En ajoutant "direct.", on force souvent le passage par IPv4, ce qui évite l'erreur "Network unreachable"
-    db_url = "postgresql://postgres:lvaEThDKHQeeE5pJ@direct.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres?sslmode=require"
-    return psycopg2.connect(db_url)
+    # Crée un fichier database.db dans le dossier de ton projet
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    with get_db_connection() as conn:
+        conn.execute('''CREATE TABLE IF NOT EXISTS users 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                         username TEXT UNIQUE, password TEXT, 
+                         color TEXT DEFAULT '#00ff88', 
+                         is_admin INTEGER DEFAULT 0)''')
+        conn.commit()
+
+# Initialisation au démarrage
+init_db()
 
 class User(UserMixin):
-    def __init__(self, id, username, color, is_admin, is_banned):
-        self.id, self.username, self.color, self.is_admin, self.is_banned = id, username, color, is_admin, is_banned
+    def __init__(self, id, username, color, is_admin):
+        self.id, self.username, self.color, self.is_admin = id, username, color, is_admin
 
 @login_manager.user_loader
 def load_user(user_id):
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute('SELECT * FROM users WHERE id = %s', (user_id,))
-                u = cur.fetchone()
-                return User(u['id'], u['username'], u['color'], u['is_admin'], u['is_banned']) if u else None
-    except: return None
+    with get_db_connection() as conn:
+        u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if u: return User(u['id'], u['username'], u['color'], u['is_admin'])
+    return None
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def index(): return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
+    u, p = data.get('username'), data.get('password')
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        # On vérifie/crée la table juste avant au cas où
-        cur.execute('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE, password TEXT, color TEXT DEFAULT "#00ff88", is_admin INTEGER DEFAULT 0, is_banned INTEGER DEFAULT 0)')
-        cur.execute('INSERT INTO users (username, password) VALUES (%s, %s)', 
-                    (data['username'], generate_password_hash(data['password'])))
-        conn.commit()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            # Le premier inscrit est admin
+            count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+            is_admin = 1 if count == 0 else 0
+            conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)',
+                         (u, generate_password_hash(p), is_admin))
+            conn.commit()
         return jsonify({"status": "success"})
-    except Exception as e:
-        # Ici on renvoie l'erreur réelle en JSON pour ne plus avoir l'erreur <!DOCTYPE
-        return jsonify({"status": "error", "message": str(e)}), 400
+    except: return jsonify({"status": "error", "message": "Pseudo déjà pris"}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute('SELECT * FROM users WHERE username = %s', (data['username'],))
-                user = cur.fetchone()
-                if user and check_password_hash(user['password'], data['password']):
-                    login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
-                    return jsonify({"status": "success"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
-    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+    with get_db_connection() as conn:
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
+        if user and check_password_hash(user['password'], data['password']):
+            login_user(User(user['id'], user['username'], user['color'], user['is_admin']))
+            return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Mauvais identifiants"}), 401
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    try:
-        data = request.json
-        msg = data.get('message')
-        # On appelle l'IA
-        reponse = ia_repond(msg, current_user.username)
-        return jsonify({"reponse": reponse})
-    except Exception as e:
-        # On force le retour en JSON même si ça plante !
-        return jsonify({"reponse": f"Erreur serveur : {str(e)}"}), 200
+    msg = request.json.get('message')
+    reponse = ia_repond(msg, current_user.username)
+    return jsonify({"reponse": reponse})
+
 @app.route('/logout')
 def logout():
-    logout_user()
-    return redirect(url_for('index'))
+    logout_user(); return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
