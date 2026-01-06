@@ -13,11 +13,18 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
 
+# --- CONNEXION DIRECTE SUPABASE (CORRIGÉE) ---
 def get_db_connection():
+    # Construction de l'URL directe sans le pooler pour éviter l'erreur "Tenant not found"
+    # Format: postgresql://[user]:[password]@[host]:[port]/[dbname]
     url_directe = "postgresql://postgres:lvaEThDKHQeeE5pJ@db.avwtqyixixkwcbhbrgcb.supabase.co:5432/postgres"
+    
     db_url = os.environ.get('DATABASE_URL', url_directe)
+    
+    # Sécurité pour Render
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
+        
     return psycopg2.connect(db_url)
 
 class User(UserMixin):
