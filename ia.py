@@ -2,7 +2,7 @@ import os
 from groq import Groq
 
 # os.environ.get va chercher la clé que tu as cachée dans Render
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+GROQ_API_KEY = os.environ.get('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')
 
 def ia_repond(message_utilisateur, pseudo):
     if not GROQ_API_KEY:
