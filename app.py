@@ -8,14 +8,13 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
-# --- CONFIG LOGIN ---
+# --- CONFIGURATION LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
 
-# --- CONNEXION SQLITE (Simple & Local) ---
+# --- GESTION SQLITE ---
 def get_db_connection():
-    # Crée un fichier database.db dans le dossier de ton projet
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
@@ -26,25 +25,27 @@ def init_db():
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          username TEXT UNIQUE, password TEXT, 
                          color TEXT DEFAULT '#00ff88', 
-                         is_admin INTEGER DEFAULT 0)''')
+                         is_admin INTEGER DEFAULT 0,
+                         is_banned INTEGER DEFAULT 0)''')
         conn.commit()
 
-# Initialisation au démarrage
 init_db()
 
 class User(UserMixin):
-    def __init__(self, id, username, color, is_admin):
-        self.id, self.username, self.color, self.is_admin = id, username, color, is_admin
+    def __init__(self, id, username, color, is_admin, is_banned):
+        self.id, self.username, self.color, self.is_admin, self.is_banned = id, username, color, is_admin, is_banned
 
 @login_manager.user_loader
 def load_user(user_id):
     with get_db_connection() as conn:
         u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        if u: return User(u['id'], u['username'], u['color'], u['is_admin'])
+        if u: return User(u['id'], u['username'], u['color'], u['is_admin'], u['is_banned'])
     return None
 
+# --- ROUTES ---
 @app.route('/')
-def index(): return render_template('index.html')
+def index():
+    return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -52,14 +53,14 @@ def register():
     u, p = data.get('username'), data.get('password')
     try:
         with get_db_connection() as conn:
-            # Le premier inscrit est admin
             count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
             is_admin = 1 if count == 0 else 0
             conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)',
                          (u, generate_password_hash(p), is_admin))
             conn.commit()
         return jsonify({"status": "success"})
-    except: return jsonify({"status": "error", "message": "Pseudo déjà pris"}), 400
+    except:
+        return jsonify({"status": "error", "message": "Pseudo déjà pris"}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -67,20 +68,32 @@ def login():
     with get_db_connection() as conn:
         user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
         if user and check_password_hash(user['password'], data['password']):
-            login_user(User(user['id'], user['username'], user['color'], user['is_admin']))
+            login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
             return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Mauvais identifiants"}), 401
+    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    msg = request.json.get('message')
-    reponse = ia_repond(msg, current_user.username)
-    return jsonify({"reponse": reponse})
+    try:
+        msg = request.json.get('message')
+        reponse = ia_repond(msg, current_user.username)
+        return jsonify({"reponse": reponse})
+    except Exception as e:
+        return jsonify({"reponse": f"Erreur IA : {str(e)}"}), 200
+
+@app.route('/admin_stats')
+@login_required
+def admin_stats():
+    if not current_user.is_admin: return jsonify({"error": "Interdit"}), 403
+    with get_db_connection() as conn:
+        users = conn.execute('SELECT username, is_admin, is_banned FROM users').fetchall()
+        return jsonify({"users": [dict(u) for u in users]})
 
 @app.route('/logout')
 def logout():
-    logout_user(); return redirect(url_for('index'))
+    logout_user()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
