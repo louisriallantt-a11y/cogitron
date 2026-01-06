@@ -74,10 +74,15 @@ def login():
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    msg = request.json.get('message')
-    reponse = ia_repond(msg, current_user.username)
-    return jsonify({"reponse": reponse})
-
+    try:
+        data = request.json
+        msg = data.get('message')
+        # On appelle l'IA
+        reponse = ia_repond(msg, current_user.username)
+        return jsonify({"reponse": reponse})
+    except Exception as e:
+        # On force le retour en JSON même si ça plante !
+        return jsonify({"reponse": f"Erreur serveur : {str(e)}"}), 200
 @app.route('/logout')
 def logout():
     logout_user()
