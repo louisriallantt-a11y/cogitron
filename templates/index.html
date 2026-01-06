@@ -17,7 +17,6 @@
                         {% if current_user.is_admin %}
                             <a href="#" onclick="openAdmin()">🔴 Panel Admin</a>
                         {% endif %}
-                        <a href="#">🎨 Paramètres</a>
                         <a href="/logout" style="color: #ff4d4d;">🚪 Déconnexion</a>
                     </div>
                 </div>
@@ -27,6 +26,17 @@
         </div>
     </nav>
 
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('auth-modal').style.display='none'">&times;</span>
+            <h2>Connexion / Inscription</h2>
+            <input type="text" id="username" placeholder="Nom d'utilisateur"><br><br>
+            <input type="password" id="password" placeholder="Mot de passe"><br><br>
+            <button onclick="login()">Se connecter</button>
+            <button onclick="register()">S'inscrire</button>
+        </div>
+    </div>
+
     <div class="chat-container">
         <div id="chat-box"></div>
         <div class="input-area">
@@ -35,70 +45,58 @@
         </div>
     </div>
 
-    <div id="admin-modal" class="modal">
-        <div class="modal-content admin-content">
-            <span class="close" onclick="closeAdmin()">&times;</span>
-            <h2>Panneau d'Administration</h2>
-            <div id="admin-data">
-                <h3>Utilisateurs</h3>
-                <table id="users-table"></table>
-                <h3>Boîte à idées</h3>
-                <div id="ideas-list"></div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Logique pour envoyer des messages
+        // Fonction sécurisée pour le JSON
+        async function fetchJSON(url, options) {
+            const res = await fetch(url, options);
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return await res.json();
+            } else {
+                console.error("Le serveur n'a pas renvoyé de JSON mais du HTML !");
+                alert("Erreur serveur : Vérifie ta base de données sur Render.");
+                return null;
+            }
+        }
+
+        async function login() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const data = await fetchJSON('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            if(data && data.status === 'success') location.reload();
+        }
+
+        async function register() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const data = await fetchJSON('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            if(data && data.status === 'success') alert("Inscrit ! Connecte-toi.");
+        }
+
         async function sendMessage() {
             let input = document.getElementById('user-input');
             let box = document.getElementById('chat-box');
             if(!input.value) return;
+            box.innerHTML += `<div class="message user-msg"><b>Moi:</b> ${input.value}</div>`;
             
-            box.innerHTML += `<p><b>Moi:</b> ${input.value}</p>`;
-            let res = await fetch('/chat', {
+            const data = await fetchJSON('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({message: input.value})
             });
-            let data = await res.json();
-            box.innerHTML += `<p><b>IA:</b> ${data.reponse}</p>`;
+            if(data) {
+                box.innerHTML += `<div class="message ia-msg"><b>IA:</b> ${data.reponse}</div>`;
+            }
             input.value = "";
         }
-
-        // Logique Admin
-        async function openAdmin() {
-            document.getElementById('admin-modal').style.display = 'flex';
-            let res = await fetch('/admin_stats');
-            let data = await res.json();
-            
-            let table = document.getElementById('users-table');
-            table.innerHTML = "<tr><th>Nom</th><th>Admin</th><th>Statut</th><th>Actions</th></tr>";
-            data.users.forEach(u => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${u.username}</td>
-                        <td>${u.is_admin ? '✅' : '❌'}</td>
-                        <td>${u.is_banned ? '🚫 BAN' : '🟢 OK'}</td>
-                        <td>
-                            <button onclick="adminAction('ban', '${u.username}')">Bannir</button>
-                            <button onclick="adminAction('unban', '${u.username}')">Gracier</button>
-                            <button onclick="adminAction('promote', '${u.username}')">Admin</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        async function adminAction(action, target) {
-            await fetch('/admin_action', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({action, target})
-            });
-            openAdmin(); // Rafraîchir
-        }
-
-        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
