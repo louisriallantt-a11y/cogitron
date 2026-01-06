@@ -2,102 +2,80 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>COGITRON PRO</title>
+    <title>COGITRON ADMIN OS</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        :root { --bg: #0a0a0a; --panel: #141414; --accent: {{ current_user.color if current_user.is_authenticated else '#00ff88' }}; --text: #ffffff; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; }
-        
-        #auth-screen { position: fixed; inset: 0; background: #000; z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--panel); padding: 40px; border: 1px solid var(--accent); width: 300px; text-align: center; }
-        
-        #app { display: none; width: 100%; height: 100%; flex-direction: row; }
-        .sidebar { width: 250px; background: var(--panel); border-right: 1px solid #222; display: flex; flex-direction: column; }
-        .main { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
-        
-        .header { padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
-        #chat-view { flex: 1; overflow-y: auto; padding: 20px; }
-        .input-bar { padding: 20px; display: flex; gap: 10px; border-top: 1px solid #222; }
-        
-        input { background: #000; border: 1px solid #333; color: white; padding: 12px; border-radius: 4px; }
-        .msg { padding: 12px; margin-bottom: 10px; border-radius: 6px; max-width: 80%; line-height: 1.4; animation: slide 0.2s ease; }
-        .msg-user { align-self: flex-end; background: #222; }
-        .msg-ia { align-self: flex-start; border-left: 3px solid var(--accent); background: #1a1a1a; }
-        
-        #typing { display: none; color: var(--accent); font-size: 0.8em; margin-bottom: 10px; }
-        @keyframes slide { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        :root { --bg: #0a0a0a; --panel: #141414; --accent: {{ current_user.color if current_user.is_authenticated else '#00ff88' }}; }
+        body { margin:0; background:var(--bg); color:white; font-family:'Courier New', monospace; height:100vh; display:flex; }
+        #auth-screen { position:fixed; inset:0; background:#000; z-index:1000; display:flex; align-items:center; justify-content:center; }
+        .auth-card { background:var(--panel); padding:40px; border:1px solid var(--accent); width:300px; text-align:center; }
+        input { width:100%; padding:12px; margin:10px 0; background:#000; border:1px solid #333; color:var(--accent); }
+        .sidebar { width:260px; background:var(--panel); border-right:1px solid #222; display:flex; flex-direction:column; padding:15px; }
+        .main { flex:1; display:flex; flex-direction:column; }
+        .header { padding:15px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center; }
+        #chat-view { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; }
+        .msg { padding:12px; border-radius:4px; max-width:85%; }
+        .msg-user { background:#222; align-self:flex-end; }
+        .msg-ia { background:#1a1a1a; align-self:flex-start; border-left:3px solid var(--accent); }
+        .admin-btn { margin-top:20px; padding:10px; background:#300; color:red; border:1px solid red; cursor:pointer; font-size:0.7em; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen">
+    <div id="auth-screen" style="display: {% if current_user.is_authenticated %}none{% else %}flex{% endif %};">
         <div class="auth-card">
-            <h1 style="color:var(--accent)">COGITRON</h1>
-            <input type="text" id="u" placeholder="UTILISATEUR" style="width:100%; margin-bottom:10px;">
-            <input type="password" id="p" placeholder="MOT DE PASSE" style="width:100%; margin-bottom:10px;">
-            <button onclick="auth('login')" style="width:100%; padding:10px; background:var(--accent); border:none; font-weight:bold; cursor:pointer;">ACCÉDER</button>
-            <p onclick="auth('register')" style="color:#555; cursor:pointer; margin-top:15px; font-size:0.8em;">CRÉER UN COMPTE</p>
+            <h2 style="color:var(--accent)">COGITRON_LOGIN</h2>
+            <input type="text" id="u" placeholder="USER_ID">
+            <input type="password" id="p" placeholder="PASSWORD">
+            <button onclick="auth('login')" style="width:100%; padding:10px; background:var(--accent); border:none; font-weight:bold; cursor:pointer;">CONNECTER</button>
+            <p onclick="auth('register')" style="color:#444; cursor:pointer; font-size:0.8em; margin-top:15px;">CRÉER COMPTE</p>
         </div>
     </div>
 
-    <div id="app">
-        <div class="sidebar">
-            <div style="padding:20px; border-bottom:1px solid #222; color:var(--accent); font-weight:bold;">ARCHIVES MÉMOIRE</div>
-            <div id="history-list" style="padding:10px; font-size:0.8em; color:#666;">Historique synchronisé...</div>
-            <a href="/logout" style="margin-top:auto; padding:20px; color:#ff4444; text-decoration:none;">DÉCONNEXION</a>
+    <div class="sidebar">
+        <div style="color:var(--accent); font-weight:bold; margin-bottom:20px;">💾 ARCHIVES_MÉMOIRE</div>
+        <div id="hist-status" style="font-size:0.7em; color:#555;">Historique actif...</div>
+        
+        {% if current_user.is_admin %}
+        <button class="admin-btn" onclick="voirAdmin()">PANNEAU ADMIN</button>
+        {% endif %}
+        
+        <a href="/logout" style="margin-top:auto; color:#ff4444; text-decoration:none; font-size:0.8em;">[DÉCONNEXION]</a>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <span style="color:white; font-weight:bold;">● SESSION: {{ current_user.username if current_user.is_authenticated else '' }}</span>
+            <span style="color:var(--accent); font-size:0.8em;">SECURE_MODE</span>
         </div>
-        <div class="main">
-            <div class="header">
-                <span id="user-display" style="color:white; font-weight:bold;"></span>
-                <span style="color:var(--accent); font-size:0.8em;">SYSTEM_ONLINE</span>
-            </div>
-            <div id="chat-view"></div>
-            <div id="typing" style="padding: 0 20px;">Cogitron analyse les données...</div>
-            <div class="input-bar">
-                <input type="text" id="user-in" style="flex:1" placeholder="Entrez votre message...">
-                <button onclick="envoyer()" style="background:var(--accent); border:none; padding:0 25px; cursor:pointer; font-weight:bold;">ENVOYER</button>
-            </div>
+        <div id="chat-view"></div>
+        <div id="typing" style="display:none; padding:10px; color:var(--accent); font-size:0.8em;">Cogitron réfléchit...</div>
+        <div style="padding:20px; display:flex; gap:10px;">
+            <input type="text" id="user-in" style="flex:1" placeholder="COMMANDE...">
+            <button onclick="envoyer()" style="background:var(--accent); border:none; padding:0 20px; cursor:pointer; font-weight:bold;">EXEC</button>
         </div>
     </div>
 
     <script>
         async function auth(type) {
-            const username = document.getElementById('u').value;
-            const password = document.getElementById('p').value;
             const res = await fetch('/' + type, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username, password})
+                body: JSON.stringify({username: u.value, password: p.value})
             });
-            if(res.ok) {
-                if(type === 'register') alert("Compte créé !");
-                else location.reload();
-            } else alert("Erreur identifiants");
-        }
-
-        async function loadHistory() {
-            const res = await fetch('/get_history');
-            const data = await res.json();
-            const box = document.getElementById('chat-view');
-            box.innerHTML = data.map(m => `
-                <div class="msg msg-${m.role === 'user' ? 'user' : 'ia'}">${marked.parse(m.content)}</div>
-            `).join('');
-            box.scrollTop = box.scrollHeight;
+            if(res.ok) { 
+                if(type==='register') alert("Compte créé !");
+                location.reload(); 
+            } else alert("Erreur");
         }
 
         async function envoyer() {
-            const input = document.getElementById('user-in');
-            const val = input.value.trim();
+            const val = document.getElementById('user-in').value;
             if(!val) return;
-
+            document.getElementById('user-in').value = "";
             const box = document.getElementById('chat-view');
-            const typing = document.getElementById('typing');
-            
-            input.value = "";
             box.innerHTML += `<div class="msg msg-user">${val}</div>`;
-            box.scrollTop = box.scrollHeight;
-            
-            typing.style.display = "block";
+            document.getElementById('typing').style.display = "block";
 
             const res = await fetch('/chat', {
                 method: 'POST',
@@ -105,19 +83,27 @@
                 body: JSON.stringify({message: val})
             });
             const data = await res.json();
-            
-            typing.style.display = "none";
+            document.getElementById('typing').style.display = "none";
             box.innerHTML += `<div class="msg msg-ia">${marked.parse(data.reponse)}</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
-        {% if current_user.is_authenticated %}
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            document.getElementById('user-display').innerText = "UTILISATEUR: {{ current_user.username }}";
-            loadHistory();
-        {% endif %}
+        async function voirAdmin() {
+            const res = await fetch('/admin_stats');
+            const data = await res.json();
+            let userList = data.users.map(u => (u.is_admin ? '★ ' : '• ') + u.username).join('\n');
+            alert(`SÉCURITÉ COGITRON\nTotal Messages: ${data.total_msg}\n\nUtilisateurs:\n${userList}`);
+        }
 
+        async function loadHist() {
+            const res = await fetch('/get_history');
+            const data = await res.json();
+            const box = document.getElementById('chat-view');
+            box.innerHTML = data.map(m => `<div class="msg msg-${m.role==='user'?'user':'ia'}">${marked.parse(m.content)}</div>`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        {% if current_user.is_authenticated %} loadHist(); {% endif %}
         document.getElementById('user-in').onkeypress = (e) => { if(e.key === 'Enter') envoyer(); };
     </script>
 </body>
