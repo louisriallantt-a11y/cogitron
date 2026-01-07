@@ -2,9 +2,13 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cogitron Ω</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .admin-panel { background: rgba(255,0,0,0.1); border: 1px solid red; padding: 10px; margin-top: 20px; border-radius: 10px; }
+        .user-row { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #333; }
+        .writing { font-style: italic; color: #00ff88; opacity: 0.7; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,28 +23,24 @@
 
         <div id="chat-section" class="hidden">
             <div id="chat-box"></div>
+            <div id="status" class="writing hidden">Cogitron réfléchit...</div>
             <div style="display: flex; gap: 10px;">
                 <input type="text" id="user-input" placeholder="Message...">
                 <button onclick="sendMessage()">Envoyer</button>
             </div>
+            
+            <div id="admin-section" class="admin-panel hidden">
+                <h3>Panel Admin</h3>
+                <div id="user-list"></div>
+            </div>
+            
             <br>
-            <button onclick="location.reload()" style="color: red;">Déconnexion</button>
+            <button onclick="location.reload()" style="color: red; border-color: red;">Déconnexion</button>
         </div>
     </div>
 
     <script>
-        async function register() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            if(res.ok) alert("Compte créé !");
-            else alert("Erreur inscription.");
-        }
-
+        // --- LOGIQUE AUTH ---
         async function login() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
@@ -49,29 +49,83 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
+            const data = await res.json();
             if(res.ok) {
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('chat-section').classList.remove('hidden');
-            } else {
-                alert("Identifiants incorrects.");
-            }
+                if(data.is_admin) {
+                    document.getElementById('admin-section').classList.remove('hidden');
+                    loadAdminData();
+                }
+            } else alert("Erreur");
         }
 
+        async function register() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            await fetch('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            alert("Compte créé !");
+        }
+
+        // --- LOGIQUE CHAT + EFFET ECRITURE ---
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
+            const status = document.getElementById('status');
             if(!input.value) return;
-            box.innerHTML += `<div class="message user-msg">${input.value}</div>`;
-            const val = input.value;
+
+            const text = input.value;
+            box.innerHTML += `<div class="message user-msg">${text}</div>`;
             input.value = "";
+            status.classList.remove('hidden');
+            box.scrollTop = box.scrollHeight;
+
             const res = await fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: val})
+                body: JSON.stringify({message: text})
             });
+
             const data = await res.json();
-            box.innerHTML += `<div class="message ia-msg"><b>Ω:</b> ${data.reponse}</div>`;
-            box.scrollTop = box.scrollHeight;
+            status.classList.add('hidden');
+            
+            // Effet machine à écrire
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "message ia-msg";
+            msgDiv.innerHTML = "<b>Ω:</b> ";
+            box.appendChild(msgDiv);
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                msgDiv.innerHTML += data.reponse.charAt(i);
+                i++;
+                box.scrollTop = box.scrollHeight;
+                if (i >= data.reponse.length) clearInterval(interval);
+            }, 20);
+        }
+
+        // --- LOGIQUE ADMIN ---
+        async function loadAdminData() {
+            const res = await fetch('/admin_data');
+            const data = await res.json();
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
+            data.users.forEach(u => {
+                list.innerHTML += `
+                    <div class="user-row">
+                        <span>${u.username} ${u.is_admin ? '(Admin)' : ''}</span>
+                        ${!u.is_admin ? `<button onclick="ban(${u.id})" style="width:auto; padding:2px 5px; font-size:10px;">Bannir</button>` : ''}
+                    </div>`;
+            });
+        }
+
+        async function ban(id) {
+            await fetch(`/ban/${id}`, {method: 'POST'});
+            loadAdminData();
         }
     </script>
 </body>
