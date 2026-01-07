@@ -86,4 +86,29 @@
             const res = await fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body
+                body: JSON.stringify({message: text})
+            });
+            const data = await res.json();
+            status.innerText = "";
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "message ia-msg";
+            box.appendChild(msgDiv);
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                msgDiv.innerHTML += data.reponse.charAt(i);
+                i++;
+                box.scrollTop = box.scrollHeight;
+                if (i >= data.reponse.length) clearInterval(interval);
+            }, 20);
+        }
+
+        async function loadAdmin() {
+            const res = await fetch('/admin_data');
+            const data = await res.json();
+            document.getElementById('user-list').innerHTML = data.users.map(u => `<div>• ${u.username} (ID: ${u.id})</div>`).join('');
+        }
+    </script>
+</body>
+</html>
