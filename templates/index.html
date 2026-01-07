@@ -19,15 +19,16 @@
 
         <div id="chat-section" class="hidden">
             <div id="chat-box"></div>
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 10px;">
                 <input type="text" id="user-input" placeholder="Message...">
-                <button onclick="sendMessage()" style="width: 80px;">OK</button>
+                <button onclick="sendMessage()">Envoyer</button>
             </div>
+            <br>
+            <button onclick="location.reload()" style="color: red;">Déconnexion</button>
         </div>
     </div>
 
     <script>
-        // Fonctions login/register/sendMessage identiques aux précédentes
         async function register() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
@@ -36,7 +37,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-            if(res.ok) alert("Compte créé ! Connecte-toi.");
+            if(res.ok) alert("Compte créé !");
             else alert("Erreur inscription.");
         }
 
