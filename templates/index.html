@@ -2,41 +2,44 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/static/manifest.json">
-    <link rel="apple-touch-icon" href="/static/icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cogitron Ω</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
-        <h2 id="title" style="text-align:center; color:var(--neon); margin-bottom:15px;">COGITRON Ω</h2>
+        <h1 style="text-align:center; color:#00ff88; margin-bottom:20px;">COGITRON Ω</h1>
 
         <div id="auth-section">
-            <input type="text" id="username" placeholder="Louis Riallant">
+            <input type="text" id="username" placeholder="Pseudo">
             <input type="password" id="password" placeholder="Mot de passe">
-            <button onclick="login()" style="width:100%">CONNEXION</button>
-            <button onclick="register()" style="width:100%; background:transparent; color:white; border:1px solid #333; margin-top:10px;">S'INSCRIRE</button>
+            <button onclick="login()">Connexion</button>
+            <button onclick="register()" style="background:#222; margin-top:10px;">S'inscrire</button>
         </div>
 
         <div id="chat-section" class="hidden">
             <div id="chat-box"></div>
-            <div id="typing-status"></div>
+            <div id="status" style="color:#00ff88; font-size:12px; margin-bottom:5px; height:15px;"></div>
+            
             <div class="input-area">
-                <input type="text" id="user-input" placeholder="Message à Cogitron...">
-                <button onclick="sendMessage()">➤</button>
+                <input type="text" id="user-input" placeholder="Message...">
+                <button onclick="sendMessage()">Envoyer</button>
             </div>
+            
             <div id="admin-section" class="admin-panel hidden">
-                <strong>🔧 UNITÉ ADMIN :</strong> <div id="user-list"></div>
+                <h3>Panel Admin</h3>
+                <div id="user-list"></div>
             </div>
-            <button onclick="location.reload()" style="background:none; color:grey; font-size:10px; margin-top:15px; border:none; width:100%;">DÉCONNEXION</button>
+            <br>
+            <button onclick="location.reload()" style="color:red; background:none; border:1px solid red;">Déconnexion</button>
         </div>
     </div>
 
     <script>
-        document.getElementById('user-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        // Envoi avec la touche Entrée
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
 
         async function login() {
             const u = document.getElementById('username').value;
@@ -50,12 +53,11 @@
             if(res.ok) {
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('chat-section').classList.remove('hidden');
-                document.getElementById('title').innerText = "UNITÉ Ω CONNECTÉE";
                 if(data.is_admin) {
                     document.getElementById('admin-section').classList.remove('hidden');
                     loadAdmin();
                 }
-            } else alert("ACCÈS REFUSÉ");
+            } else alert("Erreur de connexion");
         }
 
         async function register() {
@@ -66,50 +68,22 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-            alert("PROFIL ENREGISTRÉ.");
+            alert("Compte créé !");
         }
 
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
-            const status = document.getElementById('typing-status');
+            const status = document.getElementById('status');
             if(!input.value) return;
 
-            const val = input.value;
-            box.innerHTML += `<div class="message user-msg">${val}</div>`;
+            const text = input.value;
+            box.innerHTML += `<div class="message user-msg">${text}</div>`;
             input.value = "";
+            status.innerText = "Cogitron réfléchit...";
             box.scrollTop = box.scrollHeight;
-            status.innerText = "Analyse en cours...";
 
             const res = await fetch('/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: val})
-            });
-            const data = await res.json();
-            status.innerText = "";
-            
-            const iaDiv = document.createElement('div');
-            iaDiv.className = "message ia-msg";
-            box.appendChild(iaDiv);
-            
-            let i = 0;
-            function type() {
-                if(i < data.reponse.length) {
-                    iaDiv.innerHTML += data.reponse.charAt(i);
-                    i++;
-                    box.scrollTop = box.scrollHeight;
-                    setTimeout(type, 15);
-                }
-            }
-            type();
-        }
-
-        async function loadAdmin() {
-            const res = await fetch('/admin_data');
-            const data = await res.json();
-            document.getElementById('user-list').innerHTML = data.users.map(u => `<div>ID ${u.id}: ${u.username}</div>`).join('');
-        }
-    </script>
-</body>
-</html>
+                body
