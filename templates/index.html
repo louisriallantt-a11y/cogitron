@@ -1,85 +1,28 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Cogitron Ω</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        .hidden { display: none; }
-        .auth-box { border: 2px solid #00ff88; padding: 20px; max-width: 300px; margin: auto; }
-        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #333; padding: 10px; margin-bottom: 10px; }
-    </style>
-</head>
-<body style="background: #111; color: white; font-family: sans-serif; text-align: center;">
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const box = document.getElementById('chat-box');
+        const text = input.value;
+        if(!text) return;
 
-    <h1>COGITRON Ω</h1>
+        // Bulle utilisateur
+        box.innerHTML += `<div class="message user-msg">${text}</div>`;
+        input.value = "";
+        box.scrollTop = box.scrollHeight;
 
-    <div id="auth-section" class="auth-box">
-        <input type="text" id="username" placeholder="Pseudo"><br><br>
-        <input type="password" id="password" placeholder="Mot de passe"><br><br>
-        <button onclick="login()">Connexion</button>
-        <button onclick="register()" style="background: #333; color: white;">S'inscrire</button>
-    </div>
+        const res = await fetch('/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: text})
+        });
 
-    <div id="chat-section" class="hidden">
-        <div id="chat-box"></div>
-        <input type="text" id="user-input" placeholder="Ton message...">
-        <button onclick="sendMessage()">Envoyer</button>
-        <button onclick="location.reload()" style="color: red;">Quitter</button>
-    </div>
-
-    <script>
-        async function register() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            if(res.ok) alert("Compte créé ! Connecte-toi.");
-            else alert("Pseudo déjà pris.");
+        if (res.ok) {
+            const data = await res.json();
+            // Bulle Cogitron
+            box.innerHTML += `<div class="message ia-msg"><b>Ω:</b> ${data.reponse}</div>`;
+        } else {
+            box.innerHTML += `<div class="message" style="color:red">Erreur de liaison...</div>`;
         }
-
-        async function login() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            if(res.ok) {
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('chat-section').classList.remove('hidden');
-            } else {
-                alert("Identifiants incorrects.");
-            }
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const box = document.getElementById('chat-box');
-            const text = input.value;
-            if(!text) return;
-
-            box.innerHTML += `<div><b>Toi:</b> ${text}</div>`;
-            input.value = "";
-
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: text})
-            });
-
-            if (res.headers.get("content-type")?.includes("application/json")) {
-                const data = await res.json();
-                box.innerHTML += `<div><b>Cogitron:</b> ${data.reponse}</div>`;
-            } else {
-                box.innerHTML += `<div style="color:red">Erreur session.</div>`;
-            }
-            box.scrollTop = box.scrollHeight;
-        }
-    </script>
-</body>
-</html>
+        box.scrollTop = box.scrollHeight;
+    }
+</script>
