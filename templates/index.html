@@ -2,114 +2,84 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cogitron Ω</title>
     <link rel="stylesheet" href="/static/style.css">
     <style>
-        /* Petit style rapide pour voir les boutons si ton CSS n'est pas chargé */
-        .auth-box { border: 1px solid #00ff88; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .hidden { display: none; }
-        #chat-box { height: 300px; overflow-y: auto; border: 1px solid #444; margin-bottom: 10px; padding: 10px; }
+        .auth-box { border: 2px solid #00ff88; padding: 20px; max-width: 300px; margin: auto; }
+        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #333; padding: 10px; margin-bottom: 10px; }
     </style>
 </head>
-<body>
+<body style="background: #111; color: white; font-family: sans-serif; text-align: center;">
 
-    <div class="container">
-        <h1>COGITRON Ω</h1>
+    <h1>COGITRON Ω</h1>
 
-        <div id="auth-section" class="auth-box">
-            <h2 id="auth-title">Connexion</h2>
-            <input type="text" id="username" placeholder="Pseudo">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <br><br>
-            <button onclick="login()">Se connecter</button>
-            <button onclick="register()" style="background: #444; color: white;">S'inscrire</button>
-        </div>
+    <div id="auth-section" class="auth-box">
+        <input type="text" id="username" placeholder="Pseudo"><br><br>
+        <input type="password" id="password" placeholder="Mot de passe"><br><br>
+        <button onclick="login()">Connexion</button>
+        <button onclick="register()" style="background: #333; color: white;">S'inscrire</button>
+    </div>
 
-        <div id="main-content" class="hidden">
-            <p>Bienvenue, <span id="display-username" style="color: #00ff88;"></span> !</p>
-            <div id="chat-box"></div>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="user-input" placeholder="Dis quelque chose..." style="flex: 1;">
-                <button onclick="sendMessage()">Envoyer</button>
-            </div>
-            <br>
-            <button onclick="logout()" style="color: red;">Déconnexion</button>
-        </div>
+    <div id="chat-section" class="hidden">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Ton message...">
+        <button onclick="sendMessage()">Envoyer</button>
+        <button onclick="location.reload()" style="color: red;">Quitter</button>
     </div>
 
     <script>
-        // --- INSCRIPTION ---
         async function register() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-            if(!u || !p) return alert("Remplis tout !");
-
             const res = await fetch('/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-
-            if(res.ok) {
-                alert("Compte créé avec succès ! Tu peux maintenant te connecter.");
-            } else {
-                const data = await res.json();
-                alert("Erreur : " + (data.message || "Pseudo déjà pris"));
-            }
+            if(res.ok) alert("Compte créé ! Connecte-toi.");
+            else alert("Pseudo déjà pris.");
         }
 
-        // --- CONNEXION ---
         async function login() {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
-
             const res = await fetch('/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({username: u, password: p})
             });
-
             if(res.ok) {
                 document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('display-username').innerText = u;
+                document.getElementById('chat-section').classList.remove('hidden');
             } else {
-                alert("Mauvais identifiants ou compte banni.");
+                alert("Identifiants incorrects.");
             }
         }
 
-        // --- ENVOI MESSAGE ---
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
-            if(!input.value) return;
-
             const text = input.value;
+            if(!text) return;
+
             box.innerHTML += `<div><b>Toi:</b> ${text}</div>`;
             input.value = "";
 
-            try {
-                const res = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({message: text})
-                });
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text})
+            });
 
-                const contentType = res.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await res.json();
-                    box.innerHTML += `<div><b>Cogitron:</b> ${data.reponse}</div>`;
-                } else {
-                    box.innerHTML += `<div style="color:orange">Session expirée. Reconnecte-toi.</div>`;
-                }
-            } catch (e) {
-                box.innerHTML += `<div style="color:red">Erreur de connexion.</div>`;
+            if (res.headers.get("content-type")?.includes("application/json")) {
+                const data = await res.json();
+                box.innerHTML += `<div><b>Cogitron:</b> ${data.reponse}</div>`;
+            } else {
+                box.innerHTML += `<div style="color:red">Erreur session.</div>`;
             }
             box.scrollTop = box.scrollHeight;
         }
-
-        function logout() { window.location.href = "/logout"; }
     </script>
 </body>
 </html>
