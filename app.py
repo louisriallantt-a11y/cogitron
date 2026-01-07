@@ -14,10 +14,10 @@ DB_PATH = os.path.join(BASE_DIR, 'database.db')
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# FORCE LE JSON MEME EN CAS D'ERREUR SUR LE SERVEUR
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({"status": "error", "message": "Le serveur a crashé, regarde les logs Render"}), 500
+# Cette fonction gère l'erreur quand on n'est pas connecté
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({"reponse": "🚫 Erreur : Tu dois être connecté pour parler à Cogitron."}), 401
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -41,23 +41,40 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    with get_db_connection() as conn:
-        u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        if u: return User(u['id'], u['username'], u['is_admin'], u['is_banned'])
+    try:
+        with get_db_connection() as conn:
+            u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+            if u: return User(u['id'], u['username'], u['is_admin'], u['is_banned'])
+    except: return None
     return None
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    with get_db_connection() as conn:
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
+        if user and check_password_hash(user['password'], data['password']):
+            login_user(User(user['id'], user['username'], user['is_admin'], user['is_banned']))
+            return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
     data = request.json
-    reponse = ia_repond(data.get('message'), current_user.username)
+    msg = data.get('message')
+    # Appel à ton IA
+    reponse = ia_repond(msg, current_user.username)
     return jsonify({"reponse": reponse})
 
-# ... (garde tes autres routes register/login identiques au message précédent)
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
