@@ -1,9 +1,16 @@
-// Service Worker Minimal
+const CACHE_NAME = 'cogitron-v1';
+const urlsToCache = ['/'];
+
 self.addEventListener('install', (event) => {
-  console.log('Cogitron Service Worker installé !');
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Nécessaire pour que l'app soit considérée comme PWA
-  event.respondWith(fetch(event.request));
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
 });
