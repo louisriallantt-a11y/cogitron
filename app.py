@@ -8,7 +8,7 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
-# --- BASE DE DONNEES ---
+# --- BASE DE DONNEES LOCALE ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
@@ -46,15 +46,14 @@ def load_user(user_id):
     except: return None
     return None
 
-# --- ROUTES ---
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.json
     try:
+        data = request.json
         with get_db_connection() as conn:
             count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
             is_admin = 1 if count == 0 else 0
@@ -62,25 +61,49 @@ def register():
                          (data['username'], generate_password_hash(data['password']), is_admin))
             conn.commit()
         return jsonify({"status": "success"})
-    except: return jsonify({"status": "error"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Pseudo déjà pris."}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    with get_db_connection() as conn:
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
-        if user and check_password_hash(user['password'], data['password']):
-            if user['is_banned']: return jsonify({"status": "error"}), 403
-            login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
-            return jsonify({"status": "success"})
-    return jsonify({"status": "error"}), 401
+    try:
+        data = request.json
+        with get_db_connection() as conn:
+            user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
+            if user and check_password_hash(user['password'], data['password']):
+                if user['is_banned']: return jsonify({"status": "error", "message": "Compte banni."}), 403
+                login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
+                return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "Identifiants faux."}), 401
+    except:
+        return jsonify({"status": "error", "message": "Erreur serveur."}), 500
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    msg = request.json.get('message')
-    reponse = ia_repond(msg, current_user.username)
-    return jsonify({"reponse": reponse})
+    try:
+        msg = request.json.get('message')
+        reponse = ia_repond(msg, current_user.username)
+        return jsonify({"reponse": reponse})
+    except Exception as e:
+        return jsonify({"reponse": f"Erreur IA : {str(e)}"}), 200
+
+@app.route('/admin_stats')
+@login_required
+def admin_stats():
+    if not current_user.is_admin: return jsonify({"error": "Interdit"}), 403
+    with get_db_connection() as conn:
+        users = conn.execute('SELECT id, username, is_admin, is_banned FROM users').fetchall()
+        return jsonify({"users": [dict(u) for u in users]})
+
+@app.route('/ban/<int:user_id>', methods=['POST'])
+@login_required
+def ban_user(user_id):
+    if not current_user.is_admin: return jsonify({"error": "Interdit"}), 403
+    with get_db_connection() as conn:
+        conn.execute('UPDATE users SET is_banned = 1 WHERE id = ?', (user_id,))
+        conn.commit()
+    return jsonify({"status": "success"})
 
 @app.route('/logout')
 def logout():
