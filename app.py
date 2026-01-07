@@ -12,13 +12,19 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
 
+# --- SECURITE SQLITE ---
+# On définit le chemin absolu pour éviter que Render ne se perde
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'database.db')
+
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    with get_db_connection() as conn:
+    try:
+        conn = get_db_connection()
         conn.execute('''CREATE TABLE IF NOT EXISTS users 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          username TEXT UNIQUE, password TEXT, 
@@ -26,7 +32,12 @@ def init_db():
                          is_admin INTEGER DEFAULT 0,
                          is_banned INTEGER DEFAULT 0)''')
         conn.commit()
+        conn.close()
+        print("Base de données initialisée avec succès.")
+    except Exception as e:
+        print(f"Erreur init_db: {e}")
 
+# Lancement de l'initialisation
 init_db()
 
 class User(UserMixin):
@@ -35,9 +46,11 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    with get_db_connection() as conn:
-        u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        if u: return User(u['id'], u['username'], u['color'], u['is_admin'], u['is_banned'])
+    try:
+        with get_db_connection() as conn:
+            u = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+            if u: return User(u['id'], u['username'], u['color'], u['is_admin'], u['is_banned'])
+    except: return None
     return None
 
 @app.route('/')
@@ -46,9 +59,9 @@ def index():
 
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.json
-    u, p = data.get('username'), data.get('password')
     try:
+        data = request.json
+        u, p = data.get('username'), data.get('password')
         with get_db_connection() as conn:
             count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
             is_admin = 1 if count == 0 else 0
@@ -56,28 +69,33 @@ def register():
                          (u, generate_password_hash(p), is_admin))
             conn.commit()
         return jsonify({"status": "success"})
-    except:
-        return jsonify({"status": "error", "message": "Pseudo déjà pris"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.json
-    with get_db_connection() as conn:
-        user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
-        if user and check_password_hash(user['password'], data['password']):
-            if user['is_banned']: 
-                return jsonify({"status": "error", "message": "🚫 Vous avez été banni de Cogitron."}), 403
-            login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
-            return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+    try:
+        data = request.json
+        with get_db_connection() as conn:
+            user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
+            if user and check_password_hash(user['password'], data['password']):
+                if user['is_banned']: 
+                    return jsonify({"status": "error", "message": "Accès banni"}), 403
+                login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
+                return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    if current_user.is_banned: return jsonify({"reponse": "Accès interdit."}), 403
-    msg = request.json.get('message')
-    reponse = ia_repond(msg, current_user.username)
-    return jsonify({"reponse": reponse})
+    try:
+        msg = request.json.get('message')
+        reponse = ia_repond(msg, current_user.username)
+        return jsonify({"reponse": reponse})
+    except Exception as e:
+        return jsonify({"reponse": f"Erreur IA : {str(e)}"}), 200
 
 @app.route('/admin_stats')
 @login_required
