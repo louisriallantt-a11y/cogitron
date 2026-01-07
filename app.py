@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import sys
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,14 +9,14 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
+# --- GESTION DES CHEMINS ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'database.db')
+
+# --- CONFIGURATION LOGIN ---
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'index'
-
-# --- SECURITE SQLITE ---
-# On définit le chemin absolu pour éviter que Render ne se perde
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -24,20 +25,19 @@ def get_db_connection():
 
 def init_db():
     try:
-        conn = get_db_connection()
-        conn.execute('''CREATE TABLE IF NOT EXISTS users 
-                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                         username TEXT UNIQUE, password TEXT, 
-                         color TEXT DEFAULT '#00ff88', 
-                         is_admin INTEGER DEFAULT 0,
-                         is_banned INTEGER DEFAULT 0)''')
-        conn.commit()
-        conn.close()
-        print("Base de données initialisée avec succès.")
+        with get_db_connection() as conn:
+            conn.execute('''CREATE TABLE IF NOT EXISTS users 
+                            (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                             username TEXT UNIQUE, password TEXT, 
+                             color TEXT DEFAULT '#00ff88', 
+                             is_admin INTEGER DEFAULT 0,
+                             is_banned INTEGER DEFAULT 0)''')
+            conn.commit()
+        print("Base de données SQLite prête.")
     except Exception as e:
-        print(f"Erreur init_db: {e}")
+        print(f"CRASH INIT_DB : {e}")
 
-# Lancement de l'initialisation
+# Lancement immédiat
 init_db()
 
 class User(UserMixin):
@@ -70,7 +70,7 @@ def register():
             conn.commit()
         return jsonify({"status": "success"})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
+        return jsonify({"status": "error", "message": "Pseudo déjà pris ou erreur."}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -80,12 +80,12 @@ def login():
             user = conn.execute('SELECT * FROM users WHERE username = ?', (data['username'],)).fetchone()
             if user and check_password_hash(user['password'], data['password']):
                 if user['is_banned']: 
-                    return jsonify({"status": "error", "message": "Accès banni"}), 403
+                    return jsonify({"status": "error", "message": "Compte banni."}), 403
                 login_user(User(user['id'], user['username'], user['color'], user['is_admin'], user['is_banned']))
                 return jsonify({"status": "success"})
-        return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+        return jsonify({"status": "error", "message": "Identifiants invalides."}), 401
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": "Erreur serveur."}), 500
 
 @app.route('/chat', methods=['POST'])
 @login_required
@@ -95,7 +95,7 @@ def chat():
         reponse = ia_repond(msg, current_user.username)
         return jsonify({"reponse": reponse})
     except Exception as e:
-        return jsonify({"reponse": f"Erreur IA : {str(e)}"}), 200
+        return jsonify({"reponse": "L'IA est indisponible pour le moment."}), 200
 
 @app.route('/admin_stats')
 @login_required
@@ -120,4 +120,5 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
