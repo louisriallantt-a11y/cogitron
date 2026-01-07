@@ -2,111 +2,283 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Cogitron Ω</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cogitron Omega - Système</title>
+    <style>
+        :root {
+            --neon-blue: #00f2fe;
+            --neon-purple: #9d50bb;
+            --bg-dark: #0a0a0a;
+            --sidebar-bg: #111111;
+            --header-bg: #151515;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- BARRE DU HAUT --- */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--header-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #333;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: white;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.3s;
+        }
+
+        .user-btn:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background-color: #1a1a1a;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1001;
+        }
+
+        .dropdown-content p {
+            padding: 12px 16px;
+            margin: 0;
+            font-size: 0.9rem;
+            color: #888;
+            border-bottom: 1px solid #333;
+        }
+
+        .dropdown-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: 0.2s;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #222;
+            color: var(--neon-blue);
+        }
+
+        /* --- SIDEBAR GAUCHE --- */
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #222;
+            padding-top: 80px; /* Espace pour la top bar */
+            transition: 0.3s;
+            z-index: 999;
+        }
+
+        .sidebar a {
+            padding: 15px 25px;
+            text-decoration: none;
+            font-size: 1rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            color: white;
+            background: linear-gradient(90deg, rgba(0,242,254,0.1), transparent);
+            border-left: 3px solid var(--neon-blue);
+        }
+
+        /* --- ZONE DE CHAT / CONTENU --- */
+        .main-container {
+            margin-left: 250px;
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            background: #1e1e1e;
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 70%;
+            border: 1px solid #333;
+        }
+
+        .input-area {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            background: #151515;
+            border: 1px solid #333;
+            color: white;
+            padding: 15px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--neon-blue);
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            border: none;
+            color: white;
+            padding: 0 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Utils */
+        .show { display: block !important; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2 style="text-align:center; color:var(--neon); margin-bottom:10px;">COGITRON Ω</h2>
 
-        <div id="auth-section">
-            <input type="text" id="username" placeholder="Louis Riallant">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <button onclick="login()" style="width:100%">Connexion</button>
-            <button onclick="register()" style="width:100%; background:transparent; color:white; margin-top:10px;">S'inscrire</button>
+    <div class="top-bar">
+        <div class="logo">🤖 COGITRON OMEGA</div>
+        <div class="user-menu">
+            <button onclick="toggleMenu()" class="user-btn" id="userBtn">👤 Louis ▼</button>
+            <div id="dropdown-menu" class="dropdown-content">
+                <p>Connecté en tant que <b>Louis</b></p>
+                <a href="#">⚙️ Paramètres</a>
+                <a href="#">📂 Ma Session</a>
+                <a href="#" onclick="logout()" style="color: #ff4d4d; border-top: 1px solid #333;">🚪 Déconnexion</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <a href="#">🏠 Dashboard</a>
+        <a href="#">💬 Messages</a>
+        <a href="#">📂 Fichiers</a>
+        <a href="#">⚡ Intelligence</a>
+        <a href="#">🛠 Outils</a>
+    </div>
+
+    <div class="main-container">
+        <div class="chat-box" id="chatBox">
+            <div class="message">Bonjour Louis ! Prêt à discuter ? 😊</div>
         </div>
 
-        <div id="chat-section" class="hidden" style="display:flex; flex-direction:column; height:100%;">
-            <div id="chat-box"></div>
-            
-            <div class="input-area">
-                <input type="text" id="user-input" placeholder="Écrire à Cogitron...">
-                <button onclick="sendMessage()">➤</button>
-            </div>
-
-            <div id="admin-section" class="admin-panel hidden">
-                <strong>🔧 Admin :</strong> <div id="user-list"></div>
-            </div>
-            <button onclick="location.reload()" style="background:none; color:grey; font-size:10px;">Quitter</button>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Écris ici, papa...">
+            <button class="send-btn" onclick="sendMessage()">Envoyer</button>
         </div>
     </div>
 
     <script>
-        // Detection Touche Entrée
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        async function login() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            const data = await res.json();
-            if(res.ok) {
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('chat-section').classList.remove('hidden');
-                if(data.is_admin) {
-                    document.getElementById('admin-section').classList.remove('hidden');
-                    loadAdmin();
-                }
-            } else alert("Erreur d'accès.");
+        // Menu déroulant
+        function toggleMenu() {
+            document.getElementById("dropdown-menu").classList.toggle("show");
         }
 
-        async function register() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            if(res.ok) alert("Compte prêt ! Connecte-toi.");
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const box = document.getElementById('chat-box');
-            if(!input.value) return;
-
-            const val = input.value;
-            box.innerHTML += `<div class="message user-msg">${val}</div>`;
-            input.value = "";
-            box.scrollTop = box.scrollHeight;
-
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: val})
-            });
-            const data = await res.json();
-            
-            // Effet Machine à écrire
-            const iaDiv = document.createElement('div');
-            iaDiv.className = "message ia-msg";
-            box.appendChild(iaDiv);
-            let i = 0;
-            const speed = 15;
-            function type() {
-                if(i < data.reponse.length) {
-                    iaDiv.innerHTML += data.reponse.charAt(i);
-                    i++;
-                    box.scrollTop = box.scrollHeight;
-                    setTimeout(type, speed);
+        // Fermer le menu si clic à l'extérieur
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
                 }
             }
-            type();
         }
 
-        async function loadAdmin() {
-            const res = await fetch('/admin_data');
-            const data = await res.json();
-            document.getElementById('user-list').innerHTML = data.users.map(u => `<div>• ${u.username}</div>`).join('');
+        // Fonction de déconnexion (Simulée)
+        function logout() {
+            if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                // Ici on simule le retour à l'écran néon
+                alert("Session fermée. Retour au système de sécurité...");
+                location.reload(); 
+            }
         }
+
+        // Envoyer un message (Visuel uniquement)
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            if(input.value.trim() !== "") {
+                const msg = document.createElement('div');
+                msg.className = 'message';
+                msg.style.alignSelf = 'flex-end';
+                msg.style.background = 'linear-gradient(45deg, #222, #333)';
+                msg.textContent = input.value;
+                chatBox.appendChild(msg);
+                input.value = "";
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // Gérer la touche Entrée
+        document.getElementById('userInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
     </script>
 </body>
 </html>
