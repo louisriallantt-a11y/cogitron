@@ -51,15 +51,28 @@ def index():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
     try:
         with get_db_connection() as conn:
-            count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
-            is_admin = 1 if count == 0 else 0
+            # --- SÉCURITÉ ADMIN PERMANENTE ---
+            # On vérifie si c'est toi. Si oui, tu es admin d'office.
+            if username == "Louis Riallant":
+                is_admin = 1
+            else:
+                # Sinon, on vérifie si la base est vide pour donner l'admin au premier
+                count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+                is_admin = 1 if count == 0 else 0
+            
+            # Insertion dans la base de données
             conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)',
-                         (data['username'], generate_password_hash(data['password']), is_admin))
+                         (username, generate_password_hash(password), is_admin))
             conn.commit()
+            
         return jsonify({"status": "success"})
-    except: return jsonify({"status": "error"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Ce pseudo existe déjà"}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
