@@ -8,16 +8,16 @@ from ia import ia_repond
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cogitron-omega-2026'
 
+# --- CHEMINS ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'database.db')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Cette fonction gère l'erreur quand on n'est pas connecté
 @login_manager.unauthorized_handler
 def unauthorized():
-    return jsonify({"reponse": "🚫 Erreur : Tu dois être connecté pour parler à Cogitron."}), 401
+    return jsonify({"reponse": "🚫 Connecte-toi d'abord."}), 401
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -52,6 +52,21 @@ def load_user(user_id):
 def index():
     return render_template('index.html')
 
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    try:
+        with get_db_connection() as conn:
+            # Le premier est admin
+            count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+            is_admin = 1 if count == 0 else 0
+            conn.execute('INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)',
+                         (data['username'], generate_password_hash(data['password']), is_admin))
+            conn.commit()
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": "Pseudo déjà pris"}), 400
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -60,14 +75,12 @@ def login():
         if user and check_password_hash(user['password'], data['password']):
             login_user(User(user['id'], user['username'], user['is_admin'], user['is_banned']))
             return jsonify({"status": "success"})
-    return jsonify({"status": "error", "message": "Identifiants faux"}), 401
+    return jsonify({"status": "error"}), 401
 
 @app.route('/chat', methods=['POST'])
 @login_required
 def chat():
-    data = request.json
-    msg = data.get('message')
-    # Appel à ton IA
+    msg = request.json.get('message')
     reponse = ia_repond(msg, current_user.username)
     return jsonify({"reponse": reponse})
 
