@@ -6,105 +6,45 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <nav class="top-nav">
-        <div class="logo">COGITRON Ω</div>
-        <div class="user-menu">
-            {% if current_user.is_authenticated %}
-                <span class="user-name" style="color: {{ current_user.color }}">{{ current_user.username }}</span>
-                <div class="dropdown">
-                    <button class="dropbtn">⚙️ Menu</button>
-                    <div class="dropdown-content">
-                        {% if current_user.is_admin %}
-                            <a href="#" onclick="openAdmin()">🔴 Panel Admin</a>
-                        {% endif %}
-                        <a href="/logout" style="color: #ff4d4d;">🚪 Déconnexion</a>
-                    </div>
-                </div>
-            {% else %}
-                <button class="dropbtn" onclick="document.getElementById('auth-modal').style.display='flex'">Se connecter</button>
-            {% endif %}
-        </div>
-    </nav>
-
-    <div id="auth-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('auth-modal').style.display='none'">&times;</span>
-            <h2>Accès Cogitron</h2>
-            <input type="text" id="username" placeholder="Pseudo">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <div style="margin-top: 20px;">
-                <button class="btn-admin" onclick="login()">Connexion</button>
-                <button class="btn-admin" style="background:#444; color:white;" onclick="register()">Créer compte</button>
-            </div>
-        </div>
-    </div>
-
     <div class="chat-container">
         <div id="chat-box"></div>
-        <div class="input-area" style="display:flex; gap:10px; margin-top:20px;">
-            <input type="text" id="user-input" placeholder="Ecris ici...">
-            <button class="btn-admin" onclick="sendMessage()">Envoyer</button>
-        </div>
+        <input type="text" id="user-input" placeholder="Message...">
+        <button onclick="sendMessage()">Envoyer</button>
+        <button onclick="logout()">Déconnexion</button>
     </div>
 
     <script>
-        async function login() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            const data = await res.json();
-            if(res.ok) location.reload();
-            else alert(data.message);
-        }
-
-        async function register() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-            const res = await fetch('/register', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            if(res.ok) alert("Compte créé ! Connecte-toi.");
-            else alert("Pseudo déjà pris.");
-        }
-
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
             if(!input.value) return;
-            box.innerHTML += `<div class="message user-msg"><b>Moi:</b> ${input.value}</div>`;
+
             const text = input.value;
+            box.innerHTML += `<div><b>Toi:</b> ${text}</div>`;
             input.value = "";
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: text})
-            });
-            const data = await res.json();
-            box.innerHTML += `<div class="message ia-msg"><b>Cogitron:</b> ${data.reponse}</div>`;
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: text})
+                });
+
+                // PROTECTION ANTI-HTML
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    box.innerHTML += `<div><b>Cogitron:</b> ${data.reponse}</div>`;
+                } else {
+                    box.innerHTML += `<div style="color:red">Erreur: Serveur déconnecté ou session expirée.</div>`;
+                }
+            } catch (e) {
+                box.innerHTML += `<div style="color:red">Erreur de connexion.</div>`;
+            }
             box.scrollTop = box.scrollHeight;
         }
 
-        async function openAdmin() {
-            const res = await fetch('/admin_stats');
-            const data = await res.json();
-            if(data.users) {
-                let txt = "LISTE UTILISATEURS :\n";
-                data.users.forEach(u => {
-                    txt += `ID:${u.id} - ${u.username} ${u.is_banned ? '[BANNI]' : ''}\n`;
-                });
-                const targetId = prompt(txt + "\nEntrez l'ID pour BANNIR quelqu'un (ou Annuler) :");
-                if(targetId) {
-                    const confirmBan = await fetch('/ban/' + targetId, {method: 'POST'});
-                    if(confirmBan.ok) alert("Utilisateur banni !");
-                }
-            }
-        }
+        function logout() { window.location.href = "/logout"; }
     </script>
 </body>
 </html>
