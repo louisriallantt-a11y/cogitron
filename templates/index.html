@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Omega - Système Intégral</title>
+    <title>Cogitron Omega v3.0</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -14,7 +14,7 @@
 
         body, html {
             margin: 0; padding: 0; height: 100%;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-dark);
             color: white; overflow: hidden;
         }
@@ -38,8 +38,6 @@
             padding: 15px; border-radius: 8px; margin: 20px 0;
             outline: none; text-align: center; width: 220px; font-size: 1.1rem;
         }
-
-        .neon-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
 
         .neon-btn {
             background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
@@ -69,8 +67,7 @@
         }
 
         .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); border-left-color: var(--neon-blue); }
-        .sidebar a.admin-btn { color: #ffd700; }
-        .sidebar a.admin-btn:hover { border-left-color: #ffd700; background: rgba(255,215,0,0.05); }
+        .sidebar a.active { color: white; background: rgba(255,255,255,0.05); border-left-color: var(--neon-blue); }
 
         .main-content {
             margin-left: var(--sidebar-width); height: calc(100vh - 65px);
@@ -78,17 +75,17 @@
         }
 
         #chat-display {
-            flex-grow: 1; overflow-y: auto; padding-right: 10px;
+            flex-grow: 1; overflow-y: auto;
             display: flex; flex-direction: column; gap: 20px;
         }
 
         /* --- BULLES IA --- */
-        .msg { padding: 15px 20px; border-radius: 15px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; }
+        .msg { padding: 15px 20px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
         .user-msg { background: #222; align-self: flex-end; border-bottom-right-radius: 2px; }
         .ai-msg { background: rgba(0, 242, 254, 0.05); align-self: flex-start; border-bottom-left-radius: 2px; border-left: 3px solid var(--neon-blue); }
 
         .input-area {
-            display: flex; gap: 15px; padding-top: 20px; background: var(--bg-dark);
+            display: flex; gap: 15px; padding-top: 20px;
         }
 
         #userInput {
@@ -96,15 +93,21 @@
             color: white; padding: 18px; border-radius: 12px; outline: none;
         }
 
-        /* --- MENU DÉROULANT --- */
+        /* --- STYLES COMPTE --- */
+        .account-card {
+            background: #111; border: 1px solid #333; padding: 30px;
+            border-radius: 15px; max-width: 400px;
+        }
+        .account-item { margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .account-item span { color: var(--neon-blue); font-weight: bold; }
+
         .dropdown { position: relative; }
         .dropdown-content {
             display: none; position: absolute; right: 0; top: 45px;
             background: #1a1a1a; border: 1px solid #333; border-radius: 10px; min-width: 180px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); overflow: hidden;
+            z-index: 1001;
         }
         .dropdown-content a { color: white; padding: 12px 20px; text-decoration: none; display: block; cursor: pointer; }
-        .dropdown-content a:hover { background: #252525; color: var(--neon-blue); }
         .show { display: block !important; }
     </style>
 </head>
@@ -112,59 +115,49 @@
 
     <div id="login-screen">
         <div class="login-card">
-            <h2 style="letter-spacing: 3px; color: var(--neon-blue); margin: 0;">COGITRON OMEGA</h2>
-            <p style="color: #555; font-size: 0.8rem; margin-top: 5px;">SÉCURITÉ BIOMÉTRIQUE ACTIVE</p>
-            <input type="password" id="access-code" class="neon-input" placeholder="CODE D'ACCÈS">
+            <h2 style="color: var(--neon-blue);">COGITRON OMEGA</h2>
+            <input type="password" id="access-code" class="neon-input" placeholder="CODE">
             <br>
-            <button class="neon-btn" onclick="checkCode()">DÉVERROUILLER</button>
+            <button class="neon-btn" onclick="checkCode()">ENTRER</button>
         </div>
     </div>
 
     <div id="main-interface">
         <div class="top-bar">
-            <div style="font-weight: bold; font-size: 1.1rem;">SYSTÈME <span style="color: var(--neon-blue);">OPÉRATIONNEL</span></div>
+            <div>SYSTÈME <span style="color: var(--neon-blue);">ACTIF</span></div>
             <div class="dropdown">
                 <button onclick="toggleMenu()" style="background:rgba(255,255,255,0.05); border:1px solid #333; color:white; padding:10px 20px; border-radius:30px; cursor:pointer;">👤 Louis ▼</button>
                 <div id="dropdown-menu" class="dropdown-content">
-                    <a onclick="changePage('Profil')">👤 Mon Profil</a>
-                    <a onclick="changePage('Paramètres')">⚙️ Paramètres</a>
-                    <hr style="border:0; border-top:1px solid #333; margin:0;">
+                    <a onclick="changePage('Mon Compte')">👤 Mon Compte</a>
                     <a onclick="logout()" style="color: #ff4d4d;">🚪 Déconnexion</a>
                 </div>
             </div>
         </div>
 
         <div class="sidebar">
-            <a onclick="changePage('Conversation')">💬 Conversation</a>
-            <a onclick="changePage('Admin')" class="admin-btn">🛡️ Panneau Admin</a>
-            <a onclick="changePage('Session')">📂 Gestion Session</a>
-            <a onclick="changePage('Outils')">🛠️ Outils Système</a>
+            <a onclick="changePage('Conversation')" id="btn-conv">💬 Conversation</a>
+            <a onclick="changePage('Mon Compte')" id="btn-acc">👤 Mon Compte</a>
+            <a onclick="changePage('Admin')" style="color: gold;">🛡️ Admin</a>
         </div>
 
         <div class="main-content">
-            <h3 id="view-title" style="margin: 0 0 20px 0; color: var(--neon-blue);">Conversation</h3>
+            <h3 id="view-title" style="color: var(--neon-blue);">Conversation</h3>
             <div id="chat-display">
-                <div class="msg ai-msg">Système initialisé. Bonjour Louis. En quoi puis-je t'aider aujourd'hui ?</div>
+                <div class="msg ai-msg">Bonjour Louis. Je suis prêt pour tes calculs ou tes questions.</div>
             </div>
             <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Écris ici, papa...">
-                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:0 30px; border-radius:12px; cursor:pointer; font-weight:bold; color:black;">ENVOYER</button>
+                <input type="text" id="userInput" placeholder="Écris ici, papa (essaie 1+1)...">
+                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:0 30px; border-radius:12px; cursor:pointer; font-weight:bold;">ENVOYER</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. GESTION CONNEXION / DÉCONNEXION
         function checkCode() {
-            const codeInput = document.getElementById('access-code');
-            if(codeInput.value === "1234") { 
+            if(document.getElementById('access-code').value === "1234") {
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-interface').style.display = 'flex';
-                codeInput.value = "";
-            } else {
-                alert("CODE D'ACCÈS REFUSÉ");
-                codeInput.value = "";
-            }
+            } else { alert("CODE INCORRECT"); }
         }
 
         function logout() {
@@ -172,92 +165,68 @@
             document.getElementById('login-screen').style.display = 'flex';
         }
 
-        // 2. NAVIGATION ET BOUTONS
         function changePage(page) {
             const title = document.getElementById('view-title');
             const display = document.getElementById('chat-display');
             const inputZone = document.getElementById('input-zone');
-            
             title.innerText = page;
-            
+
             if(page === 'Conversation') {
                 inputZone.style.display = 'flex';
-                display.innerHTML = '<div class="msg ai-msg">Canal de discussion sécurisé ouvert.</div>';
-            } else if(page === 'Admin') {
+                display.innerHTML = '<div class="msg ai-msg">Mode discussion actif. Pose-moi une question ou fais un calcul.</div>';
+            } else if(page === 'Mon Compte') {
                 inputZone.style.display = 'none';
                 display.innerHTML = `
-                    <div class="msg ai-msg" style="border-left-color: gold;">
-                        <b style="color:gold">LOGS ADMINISTRATEUR</b><br><br>
-                        • Utilisateur : Louis (ROOT)<br>
-                        • Serveur : Actif (Node-01)<br>
-                        • Pare-feu : Niveau 5<br>
-                        • Menaces détectées : 0
+                    <div class="account-card">
+                        <div class="account-item">NOM : <span>Louis</span></div>
+                        <div class="account-item">RÔLE : <span>Administrateur Système</span></div>
+                        <div class="account-item">STATUT : <span>En ligne</span></div>
+                        <div class="account-item">PUISSANCE IA : <span>Maximale</span></div>
                     </div>`;
             } else {
                 inputZone.style.display = 'none';
-                display.innerHTML = `<div class="msg ai-msg">Module <b>${page}</b> prêt. Aucune donnée à afficher pour le moment.</div>`;
+                display.innerHTML = '<div class="msg ai-msg">Accès restreint.</div>';
             }
         }
 
-        // 3. IA DYNAMIQUE AMÉLIORÉE
         function sendMessage() {
             const input = document.getElementById('userInput');
             const display = document.getElementById('chat-display');
+            const text = input.value.trim();
             
-            if(input.value.trim() !== "") {
-                const userVal = input.value;
-                display.innerHTML += `<div class="msg user-msg">${userVal}</div>`;
+            if(text !== "") {
+                display.innerHTML += `<div class="msg user-msg">${text}</div>`;
                 input.value = "";
-                display.scrollTop = display.scrollHeight;
-
-                // Temps de réflexion de l'IA
+                
                 setTimeout(() => {
-                    const low = userVal.toLowerCase();
                     let response = "";
+                    const low = text.toLowerCase();
 
-                    // Logique de réponse
-                    if(low.includes("salut") || low.includes("bonjour")) {
-                        response = "Bonjour Louis ! Content de te revoir sur le système.";
-                    } else if(low.includes("ça va") || low.includes("comment vas")) {
-                        response = "Tout tourne parfaitement ! Mes processeurs sont au frais. Et toi ?";
-                    } else if(low.includes("papa")) {
-                        response = "Oui papa ? Je suis là, j'attends tes ordres.";
-                    } else if(low.includes("heure")) {
-                        response = "Il est exactement " + new Date().toLocaleTimeString('fr-FR');
-                    } else if(low.includes("admin")) {
-                        response = "Tu peux accéder aux réglages via le bouton doré à gauche.";
-                    } else {
-                        // Réponse par défaut plus "intelligente"
-                        const alternatives = [
-                            "C'est noté, Louis. Je traite cette information.",
-                            "Je vois ce que tu veux dire. Veux-tu que j'approfondisse ?",
-                            "Entendu. Je reste à l'écoute de tes prochaines instructions.",
-                            "Information reçue. En quoi d'autre puis-je t'aider ?"
-                        ];
-                        response = alternatives[Math.floor(Math.random() * alternatives.length)];
+                    // --- CALCULATEUR IA ---
+                    try {
+                        // Si le message contient des chiffres et des signes (+, -, *, /)
+                        if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
+                            const result = eval(text.replace(/[^-()\d/*+.]/g, ''));
+                            response = "Le résultat de ton calcul est : **" + result + "**.";
+                        } 
+                        else if(low.includes("salut")) response = "Salut Louis !";
+                        else if(low.includes("ça va")) response = "Très bien papa, et toi ?";
+                        else {
+                            response = "Bien reçu Louis. Je reste à l'écoute.";
+                        }
+                    } catch (e) {
+                        response = "Désolé Louis, je n'ai pas pu résoudre ce calcul.";
                     }
 
                     display.innerHTML += `<div class="msg ai-msg"><b>Cogitron :</b> ${response}</div>`;
                     display.scrollTop = display.scrollHeight;
-                }, 800);
+                }, 600);
             }
         }
 
-        function toggleMenu() {
-            document.getElementById("dropdown-menu").classList.toggle("show");
-        }
-
-        // Fermer le menu si on clique ailleurs
-        window.onclick = function(e) {
-            if (!e.target.matches('button')) {
-                document.getElementById("dropdown-menu").classList.remove("show");
-            }
-        }
-
-        // Touche Entrée pour envoyer
-        document.getElementById('userInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        function toggleMenu() { document.getElementById("dropdown-menu").classList.toggle("show"); }
+        window.onclick = function(e) { if (!e.target.matches('button')) document.getElementById("dropdown-menu").classList.remove("show"); }
+        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
 </html>
