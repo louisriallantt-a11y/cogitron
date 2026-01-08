@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Omega v3.0</title>
+    <title>Cogitron Omega v3.5</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -28,21 +28,21 @@
         }
 
         .login-card {
-            padding: 50px; border: 1px solid var(--neon-blue);
+            padding: 40px; border: 1px solid var(--neon-blue);
             border-radius: 20px; background: rgba(0,0,0,0.9);
             text-align: center; box-shadow: 0 0 40px rgba(0, 242, 254, 0.2);
         }
 
         .neon-input {
             background: #111; border: 1px solid #333; color: white;
-            padding: 15px; border-radius: 8px; margin: 20px 0;
-            outline: none; text-align: center; width: 220px; font-size: 1.1rem;
+            padding: 12px; border-radius: 8px; margin: 10px 0;
+            outline: none; text-align: center; width: 250px; font-size: 1rem;
         }
 
         .neon-btn {
             background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-            border: none; color: white; padding: 15px 40px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;
+            border: none; color: white; padding: 15px;
+            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px;
         }
 
         /* --- INTERFACE PRINCIPALE --- */
@@ -50,8 +50,7 @@
 
         .top-bar {
             height: 65px; background: #111; border-bottom: 1px solid #222;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 25px; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 25px;
         }
 
         .sidebar {
@@ -63,51 +62,24 @@
         .sidebar a {
             padding: 18px 25px; text-decoration: none; color: #888;
             display: block; cursor: pointer; transition: 0.2s;
-            border-left: 3px solid transparent;
         }
 
-        .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); border-left-color: var(--neon-blue); }
-        .sidebar a.active { color: white; background: rgba(255,255,255,0.05); border-left-color: var(--neon-blue); }
+        .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); }
 
         .main-content {
             margin-left: var(--sidebar-width); height: calc(100vh - 65px);
             display: flex; flex-direction: column; padding: 25px; box-sizing: border-box;
         }
 
-        #chat-display {
-            flex-grow: 1; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 20px;
-        }
+        #chat-display { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        /* --- BULLES IA --- */
-        .msg { padding: 15px 20px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
-        .user-msg { background: #222; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai-msg { background: rgba(0, 242, 254, 0.05); align-self: flex-start; border-bottom-left-radius: 2px; border-left: 3px solid var(--neon-blue); }
+        .msg { padding: 15px 20px; border-radius: 15px; max-width: 80%; }
+        .user-msg { background: #222; align-self: flex-end; }
+        .ai-msg { background: rgba(0, 242, 254, 0.05); align-self: flex-start; border-left: 3px solid var(--neon-blue); }
 
-        .input-area {
-            display: flex; gap: 15px; padding-top: 20px;
-        }
+        .input-area { display: flex; gap: 15px; padding-top: 20px; }
+        #userInput { flex-grow: 1; background: #151515; border: 1px solid #333; color: white; padding: 15px; border-radius: 10px; outline: none; }
 
-        #userInput {
-            flex-grow: 1; background: #151515; border: 1px solid #333;
-            color: white; padding: 18px; border-radius: 12px; outline: none;
-        }
-
-        /* --- STYLES COMPTE --- */
-        .account-card {
-            background: #111; border: 1px solid #333; padding: 30px;
-            border-radius: 15px; max-width: 400px;
-        }
-        .account-item { margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
-        .account-item span { color: var(--neon-blue); font-weight: bold; }
-
-        .dropdown { position: relative; }
-        .dropdown-content {
-            display: none; position: absolute; right: 0; top: 45px;
-            background: #1a1a1a; border: 1px solid #333; border-radius: 10px; min-width: 180px;
-            z-index: 1001;
-        }
-        .dropdown-content a { color: white; padding: 12px 20px; text-decoration: none; display: block; cursor: pointer; }
         .show { display: block !important; }
     </style>
 </head>
@@ -115,54 +87,56 @@
 
     <div id="login-screen">
         <div class="login-card">
-            <h2 style="color: var(--neon-blue);">COGITRON OMEGA</h2>
-            <input type="password" id="access-code" class="neon-input" placeholder="CODE">
-            <br>
-            <button class="neon-btn" onclick="checkCode()">ENTRER</button>
+            <h2 style="color: var(--neon-blue); margin-bottom: 20px;">CONNEXION OMEGA</h2>
+            <input type="text" id="user-name-input" class="neon-input" placeholder="TON PRÉNOM">
+            <input type="password" id="access-code" class="neon-input" placeholder="CODE (1234)">
+            <button class="neon-btn" onclick="login()">SE CONNECTER</button>
         </div>
     </div>
 
     <div id="main-interface">
         <div class="top-bar">
-            <div>SYSTÈME <span style="color: var(--neon-blue);">ACTIF</span></div>
-            <div class="dropdown">
-                <button onclick="toggleMenu()" style="background:rgba(255,255,255,0.05); border:1px solid #333; color:white; padding:10px 20px; border-radius:30px; cursor:pointer;">👤 Louis ▼</button>
-                <div id="dropdown-menu" class="dropdown-content">
-                    <a onclick="changePage('Mon Compte')">👤 Mon Compte</a>
-                    <a onclick="logout()" style="color: #ff4d4d;">🚪 Déconnexion</a>
-                </div>
-            </div>
+            <div id="system-status">SYSTÈME ACTIF</div>
+            <div style="color: var(--neon-blue); font-weight: bold;" id="top-user-name">Utilisateur</div>
+            <button onclick="logout()" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:5px 10px; border-radius:5px; cursor:pointer;">Quitter</button>
         </div>
 
         <div class="sidebar">
-            <a onclick="changePage('Conversation')" id="btn-conv">💬 Conversation</a>
-            <a onclick="changePage('Mon Compte')" id="btn-acc">👤 Mon Compte</a>
-            <a onclick="changePage('Admin')" style="color: gold;">🛡️ Admin</a>
+            <a onclick="changePage('Conversation')">💬 Conversation</a>
+            <a onclick="changePage('Mon Compte')">👤 Mon Compte</a>
         </div>
 
         <div class="main-content">
             <h3 id="view-title" style="color: var(--neon-blue);">Conversation</h3>
-            <div id="chat-display">
-                <div class="msg ai-msg">Bonjour Louis. Je suis prêt pour tes calculs ou tes questions.</div>
-            </div>
+            <div id="chat-display"></div>
             <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Écris ici, papa (essaie 1+1)...">
-                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:0 30px; border-radius:12px; cursor:pointer; font-weight:bold;">ENVOYER</button>
+                <input type="text" id="userInput" placeholder="Pose-moi une question...">
+                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:0 20px; border-radius:10px; cursor:pointer; font-weight:bold;">ENVOYER</button>
             </div>
         </div>
     </div>
 
     <script>
-        function checkCode() {
-            if(document.getElementById('access-code').value === "1234") {
+        let currentUser = "Invité";
+
+        function login() {
+            const nameInput = document.getElementById('user-name-input').value;
+            const codeInput = document.getElementById('access-code').value;
+
+            if(codeInput === "1234" && nameInput.trim() !== "") {
+                currentUser = nameInput;
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-interface').style.display = 'flex';
-            } else { alert("CODE INCORRECT"); }
+                document.getElementById('top-user-name').innerText = currentUser;
+                
+                document.getElementById('chat-display').innerHTML = `<div class="msg ai-msg">Identification réussie. Bonjour ${currentUser}, je suis ton assistant.</div>`;
+            } else {
+                alert("Erreur : Entrez un nom et le code 1234.");
+            }
         }
 
         function logout() {
-            document.getElementById('main-interface').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex';
+            location.reload(); // Redémarre tout proprement
         }
 
         function changePage(page) {
@@ -171,21 +145,17 @@
             const inputZone = document.getElementById('input-zone');
             title.innerText = page;
 
-            if(page === 'Conversation') {
-                inputZone.style.display = 'flex';
-                display.innerHTML = '<div class="msg ai-msg">Mode discussion actif. Pose-moi une question ou fais un calcul.</div>';
-            } else if(page === 'Mon Compte') {
+            if(page === 'Mon Compte') {
                 inputZone.style.display = 'none';
                 display.innerHTML = `
-                    <div class="account-card">
-                        <div class="account-item">NOM : <span>Louis</span></div>
-                        <div class="account-item">RÔLE : <span>Administrateur Système</span></div>
-                        <div class="account-item">STATUT : <span>En ligne</span></div>
-                        <div class="account-item">PUISSANCE IA : <span>Maximale</span></div>
+                    <div style="background:#111; padding:20px; border-radius:10px; border:1px solid #333;">
+                        <p>PROFIL ACTIF : <span style="color:var(--neon-blue)">${currentUser}</span></p>
+                        <p>GRADE : Administrateur</p>
+                        <p>SESSION : Sécurisée</p>
                     </div>`;
             } else {
-                inputZone.style.display = 'none';
-                display.innerHTML = '<div class="msg ai-msg">Accès restreint.</div>';
+                inputZone.style.display = 'flex';
+                display.innerHTML = `<div class="msg ai-msg">Prêt pour une nouvelle discussion, ${currentUser}.</div>`;
             }
         }
 
@@ -202,20 +172,19 @@
                     let response = "";
                     const low = text.toLowerCase();
 
-                    // --- CALCULATEUR IA ---
-                    try {
-                        // Si le message contient des chiffres et des signes (+, -, *, /)
-                        if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
-                            const result = eval(text.replace(/[^-()\d/*+.]/g, ''));
-                            response = "Le résultat de ton calcul est : **" + result + "**.";
-                        } 
-                        else if(low.includes("salut")) response = "Salut Louis !";
-                        else if(low.includes("ça va")) response = "Très bien papa, et toi ?";
-                        else {
-                            response = "Bien reçu Louis. Je reste à l'écoute.";
-                        }
-                    } catch (e) {
-                        response = "Désolé Louis, je n'ai pas pu résoudre ce calcul.";
+                    // --- LOGIQUE IA ---
+                    if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
+                        try { response = "Le résultat est : " + eval(text.replace(/[^-()\d/*+.]/g, '')); } 
+                        catch { response = "Calcul trop complexe."; }
+                    } 
+                    else if(low.includes("appelles comment") || low.includes("mon nom") || low.includes("qui suis-je")) {
+                        response = `Tu t'appelles ${currentUser}. Je t'ai identifié au démarrage.`;
+                    }
+                    else if(low.includes("salut") || low.includes("bonjour")) {
+                        response = `Salut ${currentUser} ! Comment puis-je t'aider ?`;
+                    }
+                    else {
+                        response = "Bien reçu. Je suis à tes ordres.";
                     }
 
                     display.innerHTML += `<div class="msg ai-msg"><b>Cogitron :</b> ${response}</div>`;
@@ -224,8 +193,6 @@
             }
         }
 
-        function toggleMenu() { document.getElementById("dropdown-menu").classList.toggle("show"); }
-        window.onclick = function(e) { if (!e.target.matches('button')) document.getElementById("dropdown-menu").classList.remove("show"); }
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
