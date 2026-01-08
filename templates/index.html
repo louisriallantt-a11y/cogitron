@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Omega v4.0</title>
+    <title>Cogitron Omega v6.0 - Système d'Enregistrement</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -15,37 +15,38 @@
         body, html {
             margin: 0; padding: 0; height: 100%;
             font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-dark);
-            color: white; overflow: hidden;
+            background-color: var(--bg-dark); color: white; overflow: hidden;
         }
 
-        /* --- CONNEXION --- */
+        /* --- ÉCRAN DE CRÉATION DE COMPTE / CONNEXION --- */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
 
         .login-card {
             padding: 40px; border: 1px solid var(--neon-blue);
-            border-radius: 20px; background: rgba(0,0,0,0.9);
-            text-align: center; box-shadow: 0 0 30px var(--neon-blue);
+            border-radius: 20px; background: rgba(0,0,0,0.95);
+            text-align: center; box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+            width: 320px;
         }
 
         .neon-input {
             background: #111; border: 1px solid #333; color: white;
             padding: 12px; border-radius: 8px; margin: 10px 0;
-            outline: none; text-align: center; width: 250px;
+            outline: none; text-align: center; width: 100%; box-sizing: border-box;
         }
+
+        .neon-input:focus { border-color: var(--neon-blue); }
 
         .neon-btn {
             background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
             border: none; color: white; padding: 15px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;
+            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px;
         }
 
-        /* --- INTERFACE --- */
+        /* --- INTERFACE PRINCIPALE --- */
         #main-interface { display: none; height: 100vh; flex-direction: column; }
 
         .top-bar {
@@ -61,7 +62,7 @@
 
         .sidebar a {
             padding: 18px 25px; text-decoration: none; color: #888;
-            display: block; cursor: pointer;
+            display: block; cursor: pointer; transition: 0.3s;
         }
 
         .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); }
@@ -73,70 +74,83 @@
 
         #chat-display { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.4; }
-        .user-msg { background: #333; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai-msg { background: rgba(0, 242, 254, 0.1); align-self: flex-start; border-bottom-left-radius: 2px; border-left: 3px solid var(--neon-blue); }
+        .msg { padding: 14px 20px; border-radius: 18px; max-width: 75%; }
+        .user-msg { background: #222; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-msg { background: rgba(0, 242, 254, 0.08); align-self: flex-start; border-bottom-left-radius: 2px; border-left: 4px solid var(--neon-blue); }
 
-        .input-area { display: flex; gap: 15px; padding-top: 20px; }
-        #userInput { flex-grow: 1; background: #151515; border: 1px solid #333; color: white; padding: 15px; border-radius: 10px; outline: none; }
-        
-        #userInput:focus { border-color: var(--neon-blue); }
-
-        .send-btn { background: var(--neon-blue); border: none; padding: 0 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .input-area { display: flex; gap: 12px; padding: 15px; background: #111; border-radius: 15px; border: 1px solid #222; margin-top: 10px; }
+        #userInput { flex-grow: 1; background: transparent; border: none; color: white; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="login-card">
-            <h2 style="color: var(--neon-blue);">COGITRON OMEGA</h2>
-            <input type="text" id="user-name-input" class="neon-input" placeholder="ENTRE TON NOM">
-            <input type="password" id="access-code" class="neon-input" placeholder="CODE (1234)">
-            <button class="neon-btn" onclick="login()">INITIALISER</button>
+        <div class="login-card" id="auth-card">
+            <h2 id="auth-title" style="color: var(--neon-blue); margin-bottom: 10px;">CRÉER UN COMPTE</h2>
+            <p id="auth-subtitle" style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Définissez vos accès prioritaires</p>
+            
+            <input type="text" id="reg-name" class="neon-input" placeholder="Choisissez un Nom">
+            <input type="password" id="reg-code" class="neon-input" placeholder="Créez votre Code">
+            
+            <button class="neon-btn" onclick="createAccount()">S'ENREGISTRER</button>
         </div>
     </div>
 
     <div id="main-interface">
         <div class="top-bar">
-            <div style="font-weight: bold; color: var(--neon-blue);">SYSTÈME ACTIF</div>
-            <div id="top-user-name">Utilisateur</div>
-            <button onclick="location.reload()" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:5px 10px; border-radius:5px; cursor:pointer;">DECONNEXION</button>
+            <div style="font-weight: bold; color: var(--neon-blue);">COGITRON OMEGA</div>
+            <div id="display-user-name" style="font-weight: bold;">User</div>
+            <button onclick="location.reload()" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:5px 10px; border-radius:5px; cursor:pointer;">Quitter</button>
         </div>
 
         <div class="sidebar">
-            <a onclick="changePage('Conversation')">💬 Chat</a>
+            <a onclick="changePage('Conversation')">💬 Discussion</a>
             <a onclick="changePage('Compte')">👤 Mon Compte</a>
-            <a onclick="alert('Accès Admin Restreint')" style="color: gold;">🛡️ Admin</a>
+            <a onclick="changePage('IA')">🧠 Fichier IA</a>
         </div>
 
         <div class="main-content">
             <h3 id="view-title" style="color: var(--neon-blue);">Conversation</h3>
             <div id="chat-display"></div>
             <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Dis-moi quelque chose...">
-                <button class="send-btn" onclick="sendMessage()">ENVOYER</button>
+                <input type="text" id="userInput" placeholder="Parle-moi...">
+                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">ENVOYER</button>
             </div>
         </div>
     </div>
 
     <script>
-        let userName = "Louis";
+        // --- DONNÉES DU COMPTE ---
+        let userAccount = {
+            name: "",
+            code: "",
+            role: "Administrateur",
+            created: ""
+        };
 
-        function login() {
-            const name = document.getElementById('user-name-input').value;
-            const code = document.getElementById('access-code').value;
+        function createAccount() {
+            const name = document.getElementById('reg-name').value;
+            const code = document.getElementById('reg-code').value;
 
-            if(code === "1234" && name.trim() !== "") {
-                userName = name;
+            if(name.trim() !== "" && code.trim() !== "") {
+                userAccount.name = name;
+                userAccount.code = code;
+                userAccount.created = new Date().toLocaleString();
+
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-interface').style.display = 'flex';
-                document.getElementById('top-user-name').innerText = userName;
+                document.getElementById('display-user-name').innerText = userAccount.name;
                 
-                const display = document.getElementById('chat-display');
-                display.innerHTML = `<div class="msg ai-msg">Identification terminée. Bonjour <b>${userName}</b>. Je suis prêt.</div>`;
+                addBotMessage(`Compte créé avec succès. Bonjour <b>${userAccount.name}</b>. Ton code secret est enregistré.`);
             } else {
-                alert("Nom requis et code 1234");
+                alert("Veuillez remplir tous les champs !");
             }
+        }
+
+        function addBotMessage(text) {
+            const display = document.getElementById('chat-display');
+            display.innerHTML += `<div class="msg ai-msg"><b>Cogitron :</b> ${text}</div>`;
+            display.scrollTop = display.scrollHeight;
         }
 
         function changePage(page) {
@@ -146,73 +160,78 @@
 
             if(page === 'Compte') {
                 inputZone.style.display = 'none';
-                display.innerHTML = `<div class="msg ai-msg"><b>PROFIL UTILISATEUR</b><br>Nom : ${userName}<br>Rang : Administrateur<br>Statut : Connecté</div>`;
+                display.innerHTML = `
+                    <div style="background:#111; padding:25px; border-radius:15px; border:1px solid #333;">
+                        <h4 style="color:var(--neon-blue); margin-top:0;">INFORMATIONS DE SESSION</h4>
+                        <p>PROPRIÉTAIRE : <b>${userAccount.name}</b></p>
+                        <p>CODE D'ACCÈS : <b>**** (Masqué)</b></p>
+                        <p>GRADE : ${userAccount.role}</p>
+                        <p>DATE DE CRÉATION : ${userAccount.created}</p>
+                    </div>`;
+            } else if(page === 'IA') {
+                inputZone.style.display = 'none';
+                display.innerHTML = `
+                    <div style="background:#000; padding:20px; border-radius:10px; border:1px solid var(--neon-blue); font-family: monospace; color: var(--neon-blue);">
+                        // FICHIER CORE_IA.JS<br>
+                        {<br>
+                        &nbsp;&nbsp;"Entity": "Cogitron Omega",<br>
+                        &nbsp;&nbsp;"Logic": "Moteur Sémantique v6.0",<br>
+                        &nbsp;&nbsp;"Owner": "${userAccount.name}",<br>
+                        &nbsp;&nbsp;"Status": "En apprentissage continu",<br>
+                        &nbsp;&nbsp;"Memory": "Activée"<br>
+                        }
+                    </div>`;
             } else {
                 inputZone.style.display = 'flex';
-                display.innerHTML = `<div class="msg ai-msg">Prêt pour la discussion, ${userName}.</div>`;
+                display.innerHTML = `<div class="msg ai-msg">Conversation active. En quoi puis-je t'aider ?</div>`;
             }
         }
 
+        // --- MOTEUR DE L'IA ---
         function sendMessage() {
             const input = document.getElementById('userInput');
             const display = document.getElementById('chat-display');
             const text = input.value.trim();
-            
-            if(text !== "") {
-                // Afficher message utilisateur
-                display.innerHTML += `<div class="msg user-msg">${text}</div>`;
-                input.value = "";
-                display.scrollTop = display.scrollHeight;
+            if(text === "") return;
 
-                // Réflexion IA
-                setTimeout(() => {
-                    const low = text.toLowerCase();
-                    let response = "";
+            display.innerHTML += `<div class="msg user-msg">${text}</div>`;
+            input.value = "";
+            display.scrollTop = display.scrollHeight;
 
-                    // --- INTELLIGENCE DE L'IA ---
-                    
-                    // 1. Calculs
-                    if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
-                        try { response = "Le résultat est " + eval(text.replace(/[^-()\d/*+.]/g, '')) + "."; } 
-                        catch { response = "Je n'arrive pas à calculer ça."; }
-                    } 
-                    // 2. Nom de l'utilisateur
-                    else if(low.includes("mon nom") || low.includes("je m'appelle comment") || low.includes("qui suis-je")) {
-                        response = `Tu es <b>${userName}</b>, le propriétaire de ce système.`;
-                    }
-                    // 3. Salutations
-                    else if(low.includes("salut") || low.includes("bonjour") || low.includes("yo")) {
-                        response = `Salut ${userName} ! Comment puis-je t'aider aujourd'hui ?`;
-                    }
-                    // 4. Questions sur l'IA
-                    else if(low.includes("qui es-tu") || low.includes("ton nom")) {
-                        response = "Je suis Cogitron Omega, une interface intelligente conçue pour t'assister.";
-                    }
-                    else if(low.includes("ça va") || low.includes("ca va")) {
-                        response = "Mes circuits sont optimaux ! Et toi, comment te sens-tu ?";
-                    }
-                    // 5. Heure
-                    else if(low.includes("heure")) {
-                        response = "Il est actuellement " + new Date().toLocaleTimeString('fr-FR') + ".";
-                    }
-                    // 6. Réponse par défaut (si elle ne comprend pas)
-                    else {
-                        const random = [
-                            "C'est intéressant. Peux-tu m'en dire plus ?",
-                            "Je vois. J'enregistre cette information, " + userName + ".",
-                            "Entendu. Je reste à ton écoute.",
-                            "Information reçue. Veux-tu que j'analyse cela ?"
-                        ];
-                        response = random[Math.floor(Math.random() * random.length)];
-                    }
+            setTimeout(() => {
+                const low = text.toLowerCase();
+                let r = "";
 
-                    display.innerHTML += `<div class="msg ai-msg"><b>Cogitron :</b> ${response}</div>`;
-                    display.scrollTop = display.scrollHeight;
-                }, 700);
-            }
+                // Calculs
+                if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
+                    try { r = "Analyse mathématique : Le résultat est " + eval(text.replace(/[^-()\d/*+.]/g, '')) + "."; } 
+                    catch { r = "Erreur de syntaxe dans le calcul."; }
+                }
+                // Identité
+                else if(low.includes("nom") || low.includes("appelles comment") || low.includes("qui suis-je")) {
+                    r = `Tu es <b>${userAccount.name}</b>. Nous avons configuré ton compte ensemble il y a quelques instants.`;
+                }
+                // Heure
+                else if(low.includes("heure")) {
+                    r = "Il est actuellement " + new Date().toLocaleTimeString() + ".";
+                }
+                // Code secret
+                else if(low.includes("mon code")) {
+                    r = `Ton code secret est <b>${userAccount.code}</b>. Garde-le précieusement.`;
+                }
+                // IA
+                else if(low.includes("qui es-tu")) {
+                    r = "Je suis Cogitron Omega, ton interface de gestion neurale.";
+                }
+                else {
+                    const replies = ["C'est noté.", "Je traite cette information.", "Effectivement.", "Poursuis, je t'écoute."];
+                    r = replies[Math.floor(Math.random()*replies.length)];
+                }
+
+                addBotMessage(r);
+            }, 600);
         }
 
-        // Touche Entrée
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
