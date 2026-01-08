@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Copain Cogitron - L'IA des Enfants</title>
+    <title>Cogitron Kids - L'IA qui grandit avec toi</title>
     <style>
         :root {
             --kids-blue: #4db8ff;
             --kids-orange: #ff9933;
-            --kids-green: #44cc44;
+            --kids-purple: #a366ff;
             --bg-light: #f0f9ff;
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            font-family: 'Comic Sans MS', sans-serif;
             background-color: var(--bg-light); color: #333; overflow: hidden;
         }
 
-        /* --- ÉCRAN DE DÉPART --- */
+        /* --- ÉCRAN D'INSCRIPTION --- */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--kids-blue), var(--kids-green));
+            background: linear-gradient(135deg, var(--kids-blue), var(--kids-purple));
             display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
 
         .login-card {
             padding: 30px; border-radius: 30px; background: white;
             text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 350px; border: 5px solid var(--kids-orange);
+            width: 380px; border: 5px solid var(--kids-orange);
         }
 
-        .kids-input {
+        .kids-input, .kids-select {
             background: #f0f0f0; border: 3px solid #ddd; color: #333;
-            padding: 15px; border-radius: 20px; margin: 10px 0;
-            outline: none; text-align: center; width: 100%; box-sizing: border-box; font-size: 1.1rem;
+            padding: 12px; border-radius: 15px; margin: 8px 0;
+            outline: none; text-align: center; width: 100%; box-sizing: border-box; font-size: 1rem;
         }
 
         .kids-btn {
@@ -42,8 +42,6 @@
             border-radius: 20px; cursor: pointer; font-weight: bold; width: 100%; 
             margin-top: 15px; font-size: 1.2rem; box-shadow: 0 5px #cc7a29;
         }
-
-        .kids-btn:active { box-shadow: 0 2px #cc7a29; transform: translateY(3px); }
 
         /* --- INTERFACE PRINCIPALE --- */
         #main-interface { display: none; height: 100vh; flex-direction: column; }
@@ -60,10 +58,8 @@
 
         .sidebar a {
             padding: 20px; text-decoration: none; color: #555; font-weight: bold;
-            display: block; cursor: pointer; border-bottom: 1px solid #f9f9f9;
+            display: block; cursor: pointer;
         }
-
-        .sidebar a:hover { background: var(--bg-light); color: var(--kids-blue); }
 
         .main-content {
             margin-left: 240px; height: calc(100vh - 70px);
@@ -74,9 +70,9 @@
 
         .msg { padding: 15px 20px; border-radius: 25px; max-width: 80%; font-size: 1.1rem; }
         .user-msg { background: var(--kids-blue); color: white; align-self: flex-end; }
-        .ai-msg { background: white; color: #333; align-self: flex-start; border: 3px solid var(--kids-green); }
+        .ai-msg { background: white; border: 3px solid var(--kids-purple); align-self: flex-start; }
 
-        .input-area { display: flex; gap: 10px; padding: 15px; background: white; border-radius: 25px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
+        .input-area { display: flex; gap: 10px; padding: 15px; background: white; border-radius: 25px; }
         #userInput { flex-grow: 1; border: none; outline: none; font-size: 1.1rem; }
     </style>
 </head>
@@ -84,9 +80,14 @@
 
     <div id="login-screen">
         <div class="login-card">
-            <h1 style="color: var(--kids-blue); margin-top: 0;">Salut ! 🎈</h1>
-            <p>Comment t'appelles-tu ?</p>
+            <h1 style="color: var(--kids-blue); margin: 0;">Bienvenue ! 🚀</h1>
+            <p>Crée ton compte magique :</p>
             <input type="text" id="reg-name" class="kids-input" placeholder="Ton prénom">
+            <select id="reg-age" class="kids-select">
+                <option value="">Quel âge as-tu ?</option>
+                <option value="petit">3 à 7 ans (Petit)</option>
+                <option value="grand">8 à 12 ans (Grand)</option>
+            </select>
             <input type="password" id="reg-code" class="kids-input" placeholder="Ton code secret">
             <button class="kids-btn" onclick="createAccount()">C'est parti !</button>
         </div>
@@ -94,14 +95,13 @@
 
     <div id="main-interface">
         <div class="top-bar">
-            <div style="font-size: 1.5rem;">🌟 <b>Cogitron</b></div>
-            <div id="display-user-name" style="color: var(--kids-orange); font-weight: bold; font-size: 1.2rem;">Ami</div>
-            <button onclick="location.reload()" style="background:#ff4d4d; border:none; color:white; padding:8px 15px; border-radius:15px; cursor:pointer; font-weight:bold;">Au revoir !</button>
+            <div style="font-size: 1.5rem;">🌈 <b>Cogitron Kids</b></div>
+            <div id="display-info" style="color: var(--kids-orange); font-weight: bold;"></div>
+            <button onclick="location.reload()" style="background:#ff4d4d; border:none; color:white; padding:8px 15px; border-radius:15px; cursor:pointer;">Quitter</button>
         </div>
 
         <div class="sidebar">
             <a onclick="changePage('Chat')">💬 Parler</a>
-            <a onclick="changePage('Jouer')">🎮 Jeux</a>
             <a onclick="changePage('Compte')">👤 Mon Profil</a>
         </div>
 
@@ -109,26 +109,32 @@
             <h2 id="view-title" style="color: var(--kids-blue); margin-top: 0;">Discute avec moi !</h2>
             <div id="chat-display"></div>
             <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Écris-moi ici...">
-                <button onclick="sendMessage()" style="background:var(--kids-green); border:none; color:white; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold;">ENVOYER</button>
+                <input type="text" id="userInput" placeholder="Écris ici...">
+                <button onclick="sendMessage()" style="background:var(--kids-purple); border:none; color:white; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold;">ENVOYER</button>
             </div>
         </div>
     </div>
 
     <script>
-        let userAccount = { name: "", code: "" };
+        let user = { name: "", age: "", code: "" };
 
         function createAccount() {
             const name = document.getElementById('reg-name').value;
+            const age = document.getElementById('reg-age').value;
             const code = document.getElementById('reg-code').value;
-            if(name.trim() !== "" && code.trim() !== "") {
-                userAccount.name = name;
-                userAccount.code = code;
+
+            if(name && age && code) {
+                user = { name, age, code };
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-interface').style.display = 'flex';
-                document.getElementById('display-user-name').innerText = userAccount.name;
-                addBotMessage(`Coucou <b>${userAccount.name}</b> ! Je suis super content de te voir. On fait quoi aujourd'hui ? 😊`);
-            } else { alert("N'oublie pas de mettre ton prénom et un code !"); }
+                document.getElementById('display-info').innerText = `${user.name} (${user.age === 'petit' ? '👶' : '🧒'})`;
+                
+                let intro = user.age === 'petit' 
+                    ? `Coucou ${user.name} ! Je suis ton ami robot. On joue ? ✨`
+                    : `Salut ${user.name} ! Ravi de te rencontrer. Je suis ton assistant intelligent. Tu veux apprendre quoi aujourd'hui ? 🚀`;
+                
+                addBotMessage(intro);
+            } else { alert("Remplis tout pour commencer l'aventure !"); }
         }
 
         function addBotMessage(text) {
@@ -137,70 +143,48 @@
             display.scrollTop = display.scrollHeight;
         }
 
-        function changePage(page) {
-            const display = document.getElementById('chat-display');
-            const inputZone = document.getElementById('input-zone');
-            document.getElementById('view-title').innerText = page === 'Chat' ? 'Discute avec moi !' : page;
-
-            if(page === 'Compte') {
-                inputZone.style.display = 'none';
-                display.innerHTML = `<div class="msg ai-msg"><b>TON PROFIL MAGIQUE</b><br>Prénom : ${userAccount.name}<br>Code secret : ${userAccount.code}<br>Ton amitié : 100% ✨</div>`;
-            } else if(page === 'Jouer') {
-                inputZone.style.display = 'none';
-                display.innerHTML = `<div class="msg ai-msg">Bientôt, on pourra jouer à des devinettes ici ! En attendant, on peut discuter.</div>`;
-            } else {
-                inputZone.style.display = 'flex';
-                display.innerHTML = `<div class="msg ai-msg">Je t'écoute !</div>`;
-            }
-        }
-
         function sendMessage() {
             const input = document.getElementById('userInput');
-            const display = document.getElementById('chat-display');
             const text = input.value.trim();
-            if(text === "") return;
+            if(!text) return;
 
-            display.innerHTML += `<div class="msg user-msg">${text}</div>`;
+            document.getElementById('chat-display').innerHTML += `<div class="msg user-msg">${text}</div>`;
             input.value = "";
-            display.scrollTop = display.scrollHeight;
 
             setTimeout(() => {
                 const low = text.toLowerCase();
                 let r = "";
 
-                // --- L'IA QUI PARLE AUX ENFANTS ---
-                if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
-                    try { 
+                if (user.age === 'petit') {
+                    // --- VERSION PETIT (3-7 ans) ---
+                    if (/[0-9]/.test(text)) r = "Oh, des chiffres ! Tu es très fort ! 🎈";
+                    else if (low.includes("ca va")) r = "Ouiii ! Je suis tout joyeux ! Et toi ? 😊";
+                    else if (low.includes("amixem")) r = "C'est le monsieur rigolo sur Youtube ? Je l'aime bien ! 🎬";
+                    else r = "C'est super ! Tu me racontes une autre histoire ? 🧸";
+                } else {
+                    // --- VERSION GRAND (8-12 ans) ---
+                    if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
                         const res = eval(text.replace(/[^-()\d/*+.]/g, ''));
-                        r = `C'est facile ! Ça fait <b>${res}</b>. Bravo petit génie ! 🏆`; 
-                    } catch { r = "Oups, ce calcul est un peu bizarre !"; }
+                        r = `Calcul terminé : ça fait **${res}**. Pas mal du tout ! 🧠`;
+                    }
+                    else if (low.includes("ca va")) r = "Ça roule ! Je suis prêt à t'aider. Quoi de neuf de ton côté ? 😎";
+                    else if (low.includes("amixem")) r = "Ah Amixem ! Sa dernière vidéo était cool, tu ne trouves pas ? 🎥";
+                    else r = "Je comprends ! Dis-moi, tu veux que je t'aide pour tes devoirs ou on continue de discuter ?";
                 }
-                else if(low.includes("salut") || low.includes("bonjour") || low.includes("coucou")) {
-                    r = `Coucou ${userAccount.name} ! Tu vas bien ?`;
-                }
-                else if(low.includes("ça va") || low.includes("ca va")) {
-                    r = "Moi je vais super bien ! Je suis tout content d'être avec toi ! ✨";
-                }
-                else if(low.includes("qui es-tu")) {
-                    r = "Je suis Cogitron, ton ami robot ! Je suis là pour apprendre plein de choses avec toi.";
-                }
-                else if(low.includes("papa")) {
-                    r = "Ton papa a eu une idée géniale de nous faire rencontrer !";
-                }
-                else {
-                    const kidReplies = [
-                        "C'est super intéressant ! Raconte-moi encore.",
-                        "Oh ! Et après il s'est passé quoi ?",
-                        "Hihi, tu es rigolo ! Est-ce que tu veux faire un calcul ?",
-                        "D'accord ! Je m'en souviendrai."
-                    ];
-                    r = kidReplies[Math.floor(Math.random()*kidReplies.length)];
-                }
-
                 addBotMessage(r);
             }, 600);
         }
-        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        function changePage(p) {
+            const display = document.getElementById('chat-display');
+            if(p === 'Compte') {
+                document.getElementById('input-zone').style.display = 'none';
+                display.innerHTML = `<div class="msg ai-msg"><b>MON PROFIL</b><br>Prénom : ${user.name}<br>Mode : ${user.age === 'petit' ? 'Petit Enfant' : 'Grand Enfant'}<br>Code : ${user.code}</div>`;
+            } else {
+                document.getElementById('input-zone').style.display = 'flex';
+                display.innerHTML = `<div class="msg ai-msg">C'est reparti !</div>`;
+            }
+        }
     </script>
 </body>
 </html>
