@@ -3,148 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Omega v6.0 - Système d'Enregistrement</title>
+    <title>Mon Copain Cogitron - L'IA des Enfants</title>
     <style>
         :root {
-            --neon-blue: #00f2fe;
-            --neon-purple: #9d50bb;
-            --bg-dark: #0a0a0a;
-            --sidebar-width: 260px;
+            --kids-blue: #4db8ff;
+            --kids-orange: #ff9933;
+            --kids-green: #44cc44;
+            --bg-light: #f0f9ff;
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-dark); color: white; overflow: hidden;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--bg-light); color: #333; overflow: hidden;
         }
 
-        /* --- ÉCRAN DE CRÉATION DE COMPTE / CONNEXION --- */
+        /* --- ÉCRAN DE DÉPART --- */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            background: linear-gradient(135deg, var(--kids-blue), var(--kids-green));
             display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
 
         .login-card {
-            padding: 40px; border: 1px solid var(--neon-blue);
-            border-radius: 20px; background: rgba(0,0,0,0.95);
-            text-align: center; box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
-            width: 320px;
+            padding: 30px; border-radius: 30px; background: white;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 350px; border: 5px solid var(--kids-orange);
         }
 
-        .neon-input {
-            background: #111; border: 1px solid #333; color: white;
-            padding: 12px; border-radius: 8px; margin: 10px 0;
-            outline: none; text-align: center; width: 100%; box-sizing: border-box;
+        .kids-input {
+            background: #f0f0f0; border: 3px solid #ddd; color: #333;
+            padding: 15px; border-radius: 20px; margin: 10px 0;
+            outline: none; text-align: center; width: 100%; box-sizing: border-box; font-size: 1.1rem;
         }
 
-        .neon-input:focus { border-color: var(--neon-blue); }
-
-        .neon-btn {
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-            border: none; color: white; padding: 15px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px;
+        .kids-btn {
+            background: var(--kids-orange); border: none; color: white; padding: 15px;
+            border-radius: 20px; cursor: pointer; font-weight: bold; width: 100%; 
+            margin-top: 15px; font-size: 1.2rem; box-shadow: 0 5px #cc7a29;
         }
+
+        .kids-btn:active { box-shadow: 0 2px #cc7a29; transform: translateY(3px); }
 
         /* --- INTERFACE PRINCIPALE --- */
         #main-interface { display: none; height: 100vh; flex-direction: column; }
 
         .top-bar {
-            height: 65px; background: #111; border-bottom: 1px solid #222;
+            height: 70px; background: white; border-bottom: 4px solid var(--kids-blue);
             display: flex; justify-content: space-between; align-items: center; padding: 0 25px;
         }
 
         .sidebar {
-            width: var(--sidebar-width); background: #0d0d0d;
-            border-right: 1px solid #222; height: calc(100vh - 65px);
-            position: absolute; top: 65px; left: 0;
+            width: 240px; background: #fff; border-right: 4px solid #eee;
+            height: calc(100vh - 70px); position: absolute; top: 70px; left: 0;
         }
 
         .sidebar a {
-            padding: 18px 25px; text-decoration: none; color: #888;
-            display: block; cursor: pointer; transition: 0.3s;
+            padding: 20px; text-decoration: none; color: #555; font-weight: bold;
+            display: block; cursor: pointer; border-bottom: 1px solid #f9f9f9;
         }
 
-        .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); }
+        .sidebar a:hover { background: var(--bg-light); color: var(--kids-blue); }
 
         .main-content {
-            margin-left: var(--sidebar-width); height: calc(100vh - 65px);
-            display: flex; flex-direction: column; padding: 25px; box-sizing: border-box;
+            margin-left: 240px; height: calc(100vh - 70px);
+            display: flex; flex-direction: column; padding: 20px; box-sizing: border-box;
         }
 
         #chat-display { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-        .msg { padding: 14px 20px; border-radius: 18px; max-width: 75%; }
-        .user-msg { background: #222; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .ai-msg { background: rgba(0, 242, 254, 0.08); align-self: flex-start; border-bottom-left-radius: 2px; border-left: 4px solid var(--neon-blue); }
+        .msg { padding: 15px 20px; border-radius: 25px; max-width: 80%; font-size: 1.1rem; }
+        .user-msg { background: var(--kids-blue); color: white; align-self: flex-end; }
+        .ai-msg { background: white; color: #333; align-self: flex-start; border: 3px solid var(--kids-green); }
 
-        .input-area { display: flex; gap: 12px; padding: 15px; background: #111; border-radius: 15px; border: 1px solid #222; margin-top: 10px; }
-        #userInput { flex-grow: 1; background: transparent; border: none; color: white; outline: none; }
+        .input-area { display: flex; gap: 10px; padding: 15px; background: white; border-radius: 25px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
+        #userInput { flex-grow: 1; border: none; outline: none; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="login-card" id="auth-card">
-            <h2 id="auth-title" style="color: var(--neon-blue); margin-bottom: 10px;">CRÉER UN COMPTE</h2>
-            <p id="auth-subtitle" style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">Définissez vos accès prioritaires</p>
-            
-            <input type="text" id="reg-name" class="neon-input" placeholder="Choisissez un Nom">
-            <input type="password" id="reg-code" class="neon-input" placeholder="Créez votre Code">
-            
-            <button class="neon-btn" onclick="createAccount()">S'ENREGISTRER</button>
+        <div class="login-card">
+            <h1 style="color: var(--kids-blue); margin-top: 0;">Salut ! 🎈</h1>
+            <p>Comment t'appelles-tu ?</p>
+            <input type="text" id="reg-name" class="kids-input" placeholder="Ton prénom">
+            <input type="password" id="reg-code" class="kids-input" placeholder="Ton code secret">
+            <button class="kids-btn" onclick="createAccount()">C'est parti !</button>
         </div>
     </div>
 
     <div id="main-interface">
         <div class="top-bar">
-            <div style="font-weight: bold; color: var(--neon-blue);">COGITRON OMEGA</div>
-            <div id="display-user-name" style="font-weight: bold;">User</div>
-            <button onclick="location.reload()" style="background:none; border:1px solid #ff4d4d; color:#ff4d4d; padding:5px 10px; border-radius:5px; cursor:pointer;">Quitter</button>
+            <div style="font-size: 1.5rem;">🌟 <b>Cogitron</b></div>
+            <div id="display-user-name" style="color: var(--kids-orange); font-weight: bold; font-size: 1.2rem;">Ami</div>
+            <button onclick="location.reload()" style="background:#ff4d4d; border:none; color:white; padding:8px 15px; border-radius:15px; cursor:pointer; font-weight:bold;">Au revoir !</button>
         </div>
 
         <div class="sidebar">
-            <a onclick="changePage('Conversation')">💬 Discussion</a>
-            <a onclick="changePage('Compte')">👤 Mon Compte</a>
-            <a onclick="changePage('IA')">🧠 Fichier IA</a>
+            <a onclick="changePage('Chat')">💬 Parler</a>
+            <a onclick="changePage('Jouer')">🎮 Jeux</a>
+            <a onclick="changePage('Compte')">👤 Mon Profil</a>
         </div>
 
         <div class="main-content">
-            <h3 id="view-title" style="color: var(--neon-blue);">Conversation</h3>
+            <h2 id="view-title" style="color: var(--kids-blue); margin-top: 0;">Discute avec moi !</h2>
             <div id="chat-display"></div>
             <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Parle-moi...">
-                <button onclick="sendMessage()" style="background:var(--neon-blue); border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">ENVOYER</button>
+                <input type="text" id="userInput" placeholder="Écris-moi ici...">
+                <button onclick="sendMessage()" style="background:var(--kids-green); border:none; color:white; padding:10px 20px; border-radius:15px; cursor:pointer; font-weight:bold;">ENVOYER</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DONNÉES DU COMPTE ---
-        let userAccount = {
-            name: "",
-            code: "",
-            role: "Administrateur",
-            created: ""
-        };
+        let userAccount = { name: "", code: "" };
 
         function createAccount() {
             const name = document.getElementById('reg-name').value;
             const code = document.getElementById('reg-code').value;
-
             if(name.trim() !== "" && code.trim() !== "") {
                 userAccount.name = name;
                 userAccount.code = code;
-                userAccount.created = new Date().toLocaleString();
-
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-interface').style.display = 'flex';
                 document.getElementById('display-user-name').innerText = userAccount.name;
-                
-                addBotMessage(`Compte créé avec succès. Bonjour <b>${userAccount.name}</b>. Ton code secret est enregistré.`);
-            } else {
-                alert("Veuillez remplir tous les champs !");
-            }
+                addBotMessage(`Coucou <b>${userAccount.name}</b> ! Je suis super content de te voir. On fait quoi aujourd'hui ? 😊`);
+            } else { alert("N'oublie pas de mettre ton prénom et un code !"); }
         }
 
         function addBotMessage(text) {
@@ -156,38 +140,20 @@
         function changePage(page) {
             const display = document.getElementById('chat-display');
             const inputZone = document.getElementById('input-zone');
-            document.getElementById('view-title').innerText = page;
+            document.getElementById('view-title').innerText = page === 'Chat' ? 'Discute avec moi !' : page;
 
             if(page === 'Compte') {
                 inputZone.style.display = 'none';
-                display.innerHTML = `
-                    <div style="background:#111; padding:25px; border-radius:15px; border:1px solid #333;">
-                        <h4 style="color:var(--neon-blue); margin-top:0;">INFORMATIONS DE SESSION</h4>
-                        <p>PROPRIÉTAIRE : <b>${userAccount.name}</b></p>
-                        <p>CODE D'ACCÈS : <b>**** (Masqué)</b></p>
-                        <p>GRADE : ${userAccount.role}</p>
-                        <p>DATE DE CRÉATION : ${userAccount.created}</p>
-                    </div>`;
-            } else if(page === 'IA') {
+                display.innerHTML = `<div class="msg ai-msg"><b>TON PROFIL MAGIQUE</b><br>Prénom : ${userAccount.name}<br>Code secret : ${userAccount.code}<br>Ton amitié : 100% ✨</div>`;
+            } else if(page === 'Jouer') {
                 inputZone.style.display = 'none';
-                display.innerHTML = `
-                    <div style="background:#000; padding:20px; border-radius:10px; border:1px solid var(--neon-blue); font-family: monospace; color: var(--neon-blue);">
-                        // FICHIER CORE_IA.JS<br>
-                        {<br>
-                        &nbsp;&nbsp;"Entity": "Cogitron Omega",<br>
-                        &nbsp;&nbsp;"Logic": "Moteur Sémantique v6.0",<br>
-                        &nbsp;&nbsp;"Owner": "${userAccount.name}",<br>
-                        &nbsp;&nbsp;"Status": "En apprentissage continu",<br>
-                        &nbsp;&nbsp;"Memory": "Activée"<br>
-                        }
-                    </div>`;
+                display.innerHTML = `<div class="msg ai-msg">Bientôt, on pourra jouer à des devinettes ici ! En attendant, on peut discuter.</div>`;
             } else {
                 inputZone.style.display = 'flex';
-                display.innerHTML = `<div class="msg ai-msg">Conversation active. En quoi puis-je t'aider ?</div>`;
+                display.innerHTML = `<div class="msg ai-msg">Je t'écoute !</div>`;
             }
         }
 
-        // --- MOTEUR DE L'IA ---
         function sendMessage() {
             const input = document.getElementById('userInput');
             const display = document.getElementById('chat-display');
@@ -202,36 +168,38 @@
                 const low = text.toLowerCase();
                 let r = "";
 
-                // Calculs
+                // --- L'IA QUI PARLE AUX ENFANTS ---
                 if (/[0-9]/.test(text) && /[\+\-\*\/]/.test(text)) {
-                    try { r = "Analyse mathématique : Le résultat est " + eval(text.replace(/[^-()\d/*+.]/g, '')) + "."; } 
-                    catch { r = "Erreur de syntaxe dans le calcul."; }
+                    try { 
+                        const res = eval(text.replace(/[^-()\d/*+.]/g, ''));
+                        r = `C'est facile ! Ça fait <b>${res}</b>. Bravo petit génie ! 🏆`; 
+                    } catch { r = "Oups, ce calcul est un peu bizarre !"; }
                 }
-                // Identité
-                else if(low.includes("nom") || low.includes("appelles comment") || low.includes("qui suis-je")) {
-                    r = `Tu es <b>${userAccount.name}</b>. Nous avons configuré ton compte ensemble il y a quelques instants.`;
+                else if(low.includes("salut") || low.includes("bonjour") || low.includes("coucou")) {
+                    r = `Coucou ${userAccount.name} ! Tu vas bien ?`;
                 }
-                // Heure
-                else if(low.includes("heure")) {
-                    r = "Il est actuellement " + new Date().toLocaleTimeString() + ".";
+                else if(low.includes("ça va") || low.includes("ca va")) {
+                    r = "Moi je vais super bien ! Je suis tout content d'être avec toi ! ✨";
                 }
-                // Code secret
-                else if(low.includes("mon code")) {
-                    r = `Ton code secret est <b>${userAccount.code}</b>. Garde-le précieusement.`;
-                }
-                // IA
                 else if(low.includes("qui es-tu")) {
-                    r = "Je suis Cogitron Omega, ton interface de gestion neurale.";
+                    r = "Je suis Cogitron, ton ami robot ! Je suis là pour apprendre plein de choses avec toi.";
+                }
+                else if(low.includes("papa")) {
+                    r = "Ton papa a eu une idée géniale de nous faire rencontrer !";
                 }
                 else {
-                    const replies = ["C'est noté.", "Je traite cette information.", "Effectivement.", "Poursuis, je t'écoute."];
-                    r = replies[Math.floor(Math.random()*replies.length)];
+                    const kidReplies = [
+                        "C'est super intéressant ! Raconte-moi encore.",
+                        "Oh ! Et après il s'est passé quoi ?",
+                        "Hihi, tu es rigolo ! Est-ce que tu veux faire un calcul ?",
+                        "D'accord ! Je m'en souviendrai."
+                    ];
+                    r = kidReplies[Math.floor(Math.random()*kidReplies.length)];
                 }
 
                 addBotMessage(r);
             }, 600);
         }
-
         document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
