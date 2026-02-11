@@ -3,236 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Llama Ultra v10</title>
+    <title>Cogitron Neural v12 - Vercel</title>
     <style>
-        :root {
-            --neon-blue: #00f2fe;
-            --neon-purple: #9d50bb;
-            --neon-green: #39ff14;
-            --bg: #050505;
-        }
+        :root { --blue: #00f2fe; --purple: #9d50bb; --bg: #050505; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        
+        /* LOGIN */
+        #login-screen { position: fixed; inset: 0; background: #000; display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .card { padding: 40px; border-radius: 20px; border: 1px solid var(--blue); background: #0a0a0a; text-align: center; width: 320px; }
+        input, select { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; width: 100%; margin: 10px 0; box-sizing: border-box; }
+        button { background: linear-gradient(45deg, var(--blue), var(--purple)); border: none; color: white; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background-color: var(--bg); color: #e0e0e0; overflow: hidden;
-        }
-
-        /* --- LOGIN --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-
-        .login-card {
-            padding: 40px; border: 1px solid var(--neon-blue);
-            border-radius: 20px; background: rgba(10,10,10,0.9);
-            text-align: center; box-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
-            width: 380px;
-        }
-
-        .neon-input {
-            background: #111; border: 1px solid #333; color: white;
-            padding: 15px; border-radius: 12px; margin: 10px 0;
-            outline: none; width: 100%; box-sizing: border-box; text-align: center;
-        }
-
-        .neon-btn {
-            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
-            border: none; color: white; padding: 15px; border-radius: 12px;
-            cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px;
-            text-transform: uppercase; transition: 0.3s;
-        }
-
-        .neon-btn:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon-blue); }
-
-        /* --- UI PRINCIPALE --- */
-        #main-interface { display: none; height: 100vh; flex-direction: column; }
-
-        .top-bar {
-            height: 65px; background: #000; border-bottom: 1px solid #222;
-            display: flex; justify-content: space-between; align-items: center; padding: 0 25px;
-        }
-
-        .sidebar {
-            width: 260px; background: #080808; border-right: 1px solid #222;
-            height: calc(100vh - 65px); position: absolute; top: 65px; left: 0;
-        }
-
-        .sidebar a {
-            padding: 20px 25px; text-decoration: none; color: #888; font-weight: 500;
-            display: block; cursor: pointer; transition: 0.3s;
-        }
-
-        .sidebar a:hover { color: var(--neon-blue); background: rgba(255,255,255,0.03); }
-
-        .main-content {
-            margin-left: 260px; height: calc(100vh - 65px);
-            display: flex; flex-direction: column; padding: 25px; box-sizing: border-box;
-        }
-
-        #chat-display { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-
-        .msg { padding: 18px 22px; border-radius: 18px; max-width: 85%; line-height: 1.6; font-size: 1rem; }
+        /* INTERFACE */
+        #main-ui { display: none; height: 100vh; flex-direction: column; }
+        .top-bar { height: 60px; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+        #chat-display { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.5; }
         .user-msg { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; }
-        .ai-msg { background: #0d0d0d; border-left: 4px solid var(--neon-blue); align-self: flex-start; }
-
-        .input-area { display: flex; gap: 15px; padding: 20px; background: #000; border-top: 1px solid #222; }
-        #userInput { flex-grow: 1; background: #111; border: 1px solid #333; color: white; padding: 15px; border-radius: 12px; outline: none; }
+        .ai-msg { background: #0d0d0d; align-self: flex-start; border-left: 3px solid var(--blue); }
+        .input-area { padding: 20px; background: #000; border-top: 1px solid #222; display: flex; gap: 10px; }
+        #userInput { flex: 1; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="login-card">
-            <h2 style="color: var(--neon-blue); margin-bottom: 10px;">COGITRON ULTRA</h2>
-            <p style="color: #666; font-size: 0.9rem;">Moteur de Langage v10.0</p>
-            <input type="text" id="reg-name" class="neon-input" placeholder="Ton Prénom">
-            <select id="reg-age" class="neon-input">
-                <option value="petit">Mode Junior (3-7 ans)</option>
-                <option value="grand">Mode Expert (8-12 ans)</option>
+        <div class="card">
+            <h2 style="color: var(--blue)">COGITRON v12</h2>
+            <input type="text" id="reg-name" placeholder="Ton Prénom">
+            <select id="reg-age">
+                <option value="enfant">Mode Enfant (Simple)</option>
+                <option value="ado">Mode Ado (Expert)</option>
             </select>
-            <input type="password" id="reg-code" class="neon-input" placeholder="Ton Code Secret">
-            <button class="neon-btn" onclick="startSystem()">Activer l'Intelligence</button>
+            <button onclick="start()">DÉMARRER</button>
         </div>
     </div>
 
-    <div id="main-interface">
+    <div id="main-ui">
         <div class="top-bar">
-            <div style="color: var(--neon-blue); font-weight: 800; letter-spacing: 1px;">COGITRON <span style="color:white">NEURAL</span></div>
-            <div id="user-tag" style="color: var(--neon-green); font-family: monospace; font-size: 0.8rem;"></div>
-            <button onclick="location.reload()" style="background:none; border:1px solid #444; color:#888; cursor:pointer; padding:5px 10px; border-radius:8px;">LOGOUT</button>
+            <span>COGITRON <b>NEURAL</b></span>
+            <span id="user-tag" style="color: var(--blue)"></span>
         </div>
-
-        <div class="sidebar">
-            <a onclick="showView('chat')">💬 Discussion</a>
-            <a onclick="showView('compte')">👤 Profil</a>
-            <a onclick="showView('ia')">🧠 Noyau IA</a>
-        </div>
-
-        <div class="main-content">
-            <div id="chat-display"></div>
-            <div class="input-area" id="input-zone">
-                <input type="text" id="userInput" placeholder="Pose-moi une question complexe...">
-                <button onclick="processInput()" style="background:var(--neon-blue); border:none; color:black; padding:10px 25px; border-radius:12px; cursor:pointer; font-weight:bold;">ENVOYER</button>
-            </div>
+        <div id="chat-display"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Dis quelque chose...">
+            <button onclick="askAI()" style="width: auto; padding: 10px 20px;">ENVOYER</button>
         </div>
     </div>
 
     <script>
-        let userData = { name: "", age: "", code: "" };
+        // METS TA CLÉ ICI ENTRE LES GUILLEMETS
+        const API_KEY = "TA_CLE_GROQ_ICI"; 
+        
+        let user = { name: "", age: "" };
 
-        // --- BASE DE CONNAISSANCES (Comme un mini-Llama) ---
-        const KNOWLEDGE = {
-            youtube: {
-                amixem: {
-                    petit: "Amixem est un créateur super drôle qui fait des inventions et des vidéos rigolotes avec ses amis dans un grand studio ! 🎬",
-                    grand: "Amixem (Maxime Chabroud) est l'un des plus grands youtubeurs français. Il a fondé la Space-Unit et la Redbox. Il est connu pour ses vidéos de haute qualité, ses vlogs et ses concepts originaux comme les 'LEGO géants' ou ses tests d'objets incroyables. 🎥"
-                },
-                inoxtag: {
-                    petit: "Inoxtag est un aventurier très courageux qui fait des défis rigolos ! 🏔️",
-                    grand: "Inoxtag est un créateur qui a commencé sur Fortnite avant de se lancer dans des défis extrêmes. Son plus grand exploit est d'avoir gravi l'Everest après un an d'entraînement intensif, un projet qu'il a appelé 'Kaizen'. 🧗‍♂️"
-                },
-                michou: {
-                    petit: "Michou est un jeune homme toujours joyeux qui adore danser et s'amuser ! ✨",
-                    grand: "Michou est devenu célèbre grâce à ses lives gaming. Il a participé à 'Danse avec les Stars' et a ouvert son propre restaurant de burgers. Il est connu pour sa positivité et sa 'Team Crouton'. 🍔"
-                }
-            },
-            science: {
-                espace: {
-                    petit: "Dans l'espace, il n'y a pas d'air et on flotte comme si on était dans une piscine magique ! ⭐",
-                    grand: "L'espace est un quasi-vide où les distances se comptent en années-lumière. Le système solaire contient 8 planètes, et notre galaxie, la Voie Lactée, contient des milliards d'étoiles. Sais-tu que le temps s'écoule différemment près d'un trou noir ? 🌌"
-                }
-            }
-        };
-
-        function startSystem() {
-            const n = document.getElementById('reg-name').value;
-            const a = document.getElementById('reg-age').value;
-            const c = document.getElementById('reg-code').value;
-            if(n && c) {
-                userData = { name: n, age: a, code: c };
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-interface').style.display = 'flex';
-                document.getElementById('user-tag').innerText = `[CONNECTED: ${n.toUpperCase()}]`;
-                addBotMessage(`Bonjour ${n}. Initialisation de mon moteur de langage terminée. Je suis configuré en mode **${a === 'petit' ? 'Junior' : 'Expert'}**. Pose-moi n'importe quelle question.`);
-            }
+        function start() {
+            user.name = document.getElementById('reg-name').value;
+            user.age = document.getElementById('reg-age').value;
+            if(!user.name) return alert("Prénom requis");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            document.getElementById('user-tag').innerText = user.name;
+            addMsg("ai", `Système prêt. Bonjour ${user.name} ! Je suis ton IA connectée à Llama 3.`);
         }
 
-        function addBotMessage(text) {
+        function addMsg(type, text) {
             const d = document.getElementById('chat-display');
-            d.innerHTML += `<div class="msg ai-msg"><b>COGITRON:</b><br>${text}</div>`;
+            d.innerHTML += `<div class="msg ${type}-msg"><b>${type === 'ai' ? 'Cogitron' : 'Toi'}:</b><br>${text}</div>`;
             d.scrollTop = d.scrollHeight;
         }
 
-        function processInput() {
+        async function askAI() {
             const input = document.getElementById('userInput');
-            const val = input.value.trim();
-            if(!val) return;
+            const prompt = input.value;
+            if(!prompt) return;
 
-            document.getElementById('chat-display').innerHTML += `<div class="msg user-msg">${val}</div>`;
+            addMsg("user", prompt);
             input.value = "";
 
-            setTimeout(() => {
-                const low = val.toLowerCase();
-                let r = "";
+            // Le système de "Prompt" qui définit la personnalité
+            const systemPrompt = user.age === 'enfant' 
+                ? "Tu es une IA pour enfants de 5 ans. Parle de façon très simple, joyeuse et utilise des emojis."
+                : "Tu es une IA cool pour ados. Réponds de façon précise, avec du style, en parlant de trucs comme YouTube, le gaming ou la science.";
 
-                // --- LOGIQUE DE GÉNÉRATION STYLE "AI PRO" ---
-                
-                // YouTubeurs
-                if(low.includes("amixem")) r = KNOWLEDGE.youtube.amixem[userData.age];
-                else if(low.includes("inox")) r = KNOWLEDGE.youtube.inoxtag[userData.age];
-                else if(low.includes("michou")) r = KNOWLEDGE.youtube.michou[userData.age];
-                else if(low.includes("youtubeur") || low.includes("youtube")) {
-                    r = userData.age === "petit" 
-                        ? "Les youtubeurs sont des gens qui créent des vidéos pour nous divertir sur internet. C'est comme une télévision géante ! 📺"
-                        : "YouTube est une plateforme immense où des créateurs partagent leur passion. Pour réussir, ils doivent apprendre le montage, le cadrage et l'écriture de script. C'est un vrai métier ! 💻";
-                }
-                // Science / Espace
-                else if(low.includes("espace") || low.includes("planète") || low.includes("univers")) {
-                    r = KNOWLEDGE.science.espace[userData.age];
-                }
-                // Calculs complexes
-                else if (/[0-9]/.test(val) && /[\+\-\*\/]/.test(val)) {
-                    try {
-                        const res = eval(val.replace(/[^-()\d/*+.]/g, ''));
-                        r = `Après analyse de ton équation, le résultat exact est **${res}**. ${userData.age === 'grand' ? 'Veux-tu que je t\'explique la règle mathématique utilisée ?' : 'C\'est magique, non ? 🎩'}`;
-                    } catch { r = "Désolé, cette opération semble comporter une erreur de syntaxe."; }
-                }
-                // Humain / IA
-                else if(low.includes("qui es-tu") || low.includes("comment tu marches")) {
-                    r = `Je suis Cogitron v10, une IA basée sur une architecture de réseaux neuronaux simulée en JavaScript. Je traite tes phrases pour en extraire des mots-clés et te répondre de la manière la plus pertinente possible, ${userData.name}.`;
-                }
-                else {
-                    const brain = [
-                        `C'est une question très pertinente. En tant qu'IA, je trouve cela fascinant. Peux-tu préciser ta pensée ?`,
-                        `D'accord, je comprends. Pour aller plus loin, nous pourrions explorer les détails ensemble. Qu'en penses-tu ?`,
-                        `Je traite cette information... C'est noté ! Souhaites-tu que je fasse une recherche plus approfondie dans ma base de données ?`,
-                        `C'est très intéressant ! Cela me rappelle que chaque utilisateur a une manière unique de communiquer. Continue !`
-                    ];
-                    r = brain[Math.floor(Math.random() * brain.length)];
-                }
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama3-8b-8192",
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: prompt }
+                        ]
+                    })
+                });
 
-                addBotMessage(r);
-            }, 800);
-        }
-
-        function showView(view) {
-            const d = document.getElementById('chat-display');
-            const iz = document.getElementById('input-zone');
-            if(view === 'compte') {
-                iz.style.display = 'none';
-                d.innerHTML = `<div class="msg ai-msg"><b>DOSSIER UTILISATEUR</b><br>NOM : ${userData.name}<br>AUTORISATION : ${userData.age.toUpperCase()}<br>CRYPTO-KEY : ${userData.code}</div>`;
-            } else if(view === 'ia') {
-                iz.style.display = 'none';
-                d.innerHTML = `<div class="msg ai-msg" style="color:var(--neon-green); font-family:monospace;">> COGITRON_CORE_V10_LOADED...<br>> EMULATING_LLAMA_BRAIN...<br>> STATUS: OPTIMAL<br>> MEMORY_STATE: ACTIVE</div>`;
-            } else {
-                iz.style.display = 'flex';
-                d.innerHTML = `<div class="msg ai-msg">Moteur de discussion réactivé. En attente de commande...</div>`;
+                const data = await response.json();
+                const aiReply = data.choices[0].message.content;
+                addMsg("ai", aiReply);
+            } catch (err) {
+                addMsg("ai", "Erreur de connexion. Vérifie ta clé API dans le code !");
             }
         }
-
-        document.getElementById('userInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') processInput(); });
     </script>
 </body>
 </html>
