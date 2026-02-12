@@ -3,6 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cogitron Neural v12 - Fix</title>
+    <style>
+        :root { --blue: #00f2fe; --purple: #9d50bb; --bg: #050505; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        #login-screen { position: fixed; inset: 0; background: #000; display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .card { padding: 40px; border-radius: 20px; border: 1px solid var(--blue); background: #0a0a0a; text-align: center; width: 320px; box-shadow: 0 0 20px var(--blue); }
+        input, select { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; width: 100%; margin: 10px 0; box-sizing: border-box; }
+        button { background: linear-gradient(45deg, var(--blue), var(--purple)); border: none; color: white; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        #main-ui { display: none; height: 100vh; flex-direction: column; }
+        .top-bar { height: 60px; border-bottom: 1px solid #222; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; background: #000; }
+        #chat-display { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 85%; line-height: 1.5; font-size: 1.1rem; }
+        .user-msg { background: #1a1a1a; align-self: flex-end; border: 1px solid #333; color: var(--blue); }
+        .ai-msg { background: #0d0d0d; align-self: flex-start; border-left: 3px solid var(--purple); }
+        .input-area { padding: 20px; background: #000; border-top: 1px solid #222; display: flex; gap: 10px; }
+        #userInput { flex: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="card">
+            <h2 style="color: var(--blue)">COGITRON AI</h2>
+            <p>Système Spécial Enfant</p>
+            <input type="text" id="reg-name" placeholder="Ton Prénom">
+            <select id="reg-age">
+                <option value="enfant">Mode Petit (Simple)</option>
+                <option value="ado">Mode Grand (Expert)</option>
+            </select>
+            <button onclick="start()">ACTIVER L'IA</button>
+        </div>
+    </div>
+
+    <div id="main-ui">
+        <div class="top-bar">
+            <span>COGITRON <b style="color:var(--blue)">NEURAL</b></span>
+            <span id="user-tag" style="color: var(--purple)"></span>
+        </div>
+        <div id="chat-display"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" class="input" placeholder="Dis-moi quelque chose...">
+            <button onclick="askAI()" style="width: auto; padding: 10px 20px;">ENVOYER</button>
+        </div>
+    </div>
+
+    <script>
+        // REMPLACE CECI PAR TA CLÉ GROQ
+        const API_KEY = "gsk_CrgZ9aI8p2jrtas3gwRdWGdyb3FYnqS9kInNUg87Mu"; 
+
+        let user = { name: "", age: "" };
+
+        function start() {
+            user.name = document.getElementById('reg-name').value;
+            user.age = document.getElementById('reg-age').value;
+            if(!user.name) return alert("Donne-moi ton prénom !");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'flex';
+            document.getElementById('user-tag').innerText = user.name.toUpperCase();
+            addMsg("ai", `Coucou ${user.name} ! Mon cerveau Llama est allumé. Pose-moi une question !`);
+        }
+
+        function addMsg(type, text) {
+            const d = document.getElementById('chat-display');
+            d.innerHTML += `<div class="msg ${type}-msg"><b>${type === 'ai' ? 'Cogitron' : 'Toi'}:</b><br>${text}</div>`;
+            d.scrollTop = d.scrollHeight;
+        }
+
+        async function askAI() {
+            const input = document.getElementById('userInput');
+            const prompt = input.value;
+            if(!prompt) return;
+            addMsg("user", prompt);
+            input.value = "";
+
+            const systemPrompt = user.age === 'enfant' 
+                ? "Tu es une IA pour enfants. Réponds de façon très simple, joyeuse avec des emojis." 
+                : "Tu es une IA pour adolescents. Parle de YouTube, gaming et science avec précision.";
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "llama3-8b-8192",
+                        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }]
+                    })
+                });
+                const data = await response.json();
+                addMsg("ai", data.choices[0].message.content);
+            } catch (err) {
+                addMsg("ai", "Oups ! Vérifie ta clé API dans le code.");
+            }
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cogitron Neural v12 - Vercel</title>
     <style>
         :root { --blue: #00f2fe; --purple: #9d50bb; --bg: #050505; }
