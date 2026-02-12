@@ -24,26 +24,34 @@
         .logo-neon { font-family: 'Rajdhani', sans-serif; color: var(--neon-blue); font-size: 1.8rem; margin: 0 0 30px 0; text-shadow: 0 0 10px var(--neon-blue); }
         .new-chat-btn { border: 1px solid var(--neon-pink); background: transparent; color: var(--neon-pink); padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 600; margin-bottom: 25px; transition: 0.3s; }
         .history-list { flex-grow: 1; overflow-y: auto; }
-        .history-item { padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #888; background: rgba(255,255,255,0.03); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 2px solid transparent; }
+        .history-item { padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #888; background: rgba(255,255,255,0.03); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* --- ZONE DE CHAT (LARGUE ET CLAIRE) --- */
+        /* --- CHAT --- */
         .main-container { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--chat-bg); position: relative; }
         #chat-window { flex-grow: 1; overflow-y: auto; padding: 40px 20% 120px 20%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
         .message { max-width: 80%; line-height: 1.7; padding: 15px 22px; border-radius: 20px; font-size: 1.05rem; word-wrap: break-word; animation: slideUp 0.3s ease-out; }
-        .message p { margin: 10px 0; }
         .user-msg { align-self: flex-end; background: #2b2d3e; border-bottom-right-radius: 4px; border-right: 4px solid var(--neon-pink); }
-        .bot-msg { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 4px; border-left: 4px solid var(--neon-blue); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .bot-msg { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 4px; border-left: 4px solid var(--neon-blue); }
 
         /* --- INPUT --- */
         .input-area { padding: 20px 20% 40px 20%; background: linear-gradient(transparent, var(--chat-bg) 60%); position: absolute; bottom: 0; width: 60%; }
         .input-wrapper { display: flex; background: #252839; border: 1px solid #3d405b; border-radius: 18px; padding: 8px 15px; align-items: center; }
-        #user-input { flex-grow: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 1.1rem; outline: none; }
-        .send-btn { background: var(--neon-blue); border: none; width: 45px; height: 45px; border-radius: 12px; cursor: pointer; font-size: 1.3rem; }
+        #user-input { flex-grow: 1; background: transparent; border: none; padding: 12px; color: white; outline: none; }
+        .send-btn { background: var(--neon-blue); border: none; width: 45px; height: 45px; border-radius: 12px; cursor: pointer; }
 
-        /* --- AUTH --- */
+        /* --- AUTH CARD MODIFIÉE --- */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); z-index: 100; display: flex; justify-content: center; align-items: center; }
-        .auth-card { background: #161925; padding: 40px; border-radius: 25px; border: 1px solid var(--neon-blue); text-align: center; width: 320px; }
-        .auth-card input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #3d405b; background: #0a0b10; color: white; }
+        .auth-card { background: #161925; padding: 30px; border-radius: 25px; border: 1px solid var(--neon-blue); text-align: center; width: 350px; transition: 0.3s; }
+        .auth-card h2 { margin-top: 0; color: var(--neon-blue); font-family: 'Rajdhani'; }
+        .auth-card input, .auth-card select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #3d405b; background: #0a0b10; color: white; box-sizing: border-box; }
+        
+        .hidden { display: none; }
+        
+        .auth-link { font-size: 0.8rem; color: #888; text-decoration: underline; cursor: pointer; margin-top: 10px; display: inline-block; }
+        .auth-link:hover { color: var(--neon-pink); }
+
+        .btn-main { width: 100%; padding: 14px; background: var(--neon-blue); color: black; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .btn-sec { width: 100%; padding: 14px; background: transparent; color: var(--neon-pink); border: 1px solid var(--neon-pink); border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 10px; }
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -51,12 +59,33 @@
 <body>
 
     <div id="auth-overlay">
-        <div class="auth-card">
-            <h1 class="logo-neon">COGITRON</h1>
+        <div class="auth-card" id="form-container">
+            <h2 id="form-title">CONNEXION</h2>
+            
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Mot de passe">
-            <button onclick="handleAuth('signIn')" style="width:100%; padding:14px; background:var(--neon-blue); color:black; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:10px;">ENTRER</button>
-            <p style="font-size: 0.8rem; color: #555; margin-top: 10px;">Connecte-toi pour parler à Mistral</p>
+            
+            <div id="extra-fields" class="hidden">
+                <input type="text" id="username" placeholder="Ton Pseudo">
+                <div style="text-align: left; font-size: 0.8rem; color: #888; margin-top: 5px;">Ton âge :</div>
+                <select id="age">
+                    <option value="6">6 ans</option>
+                    <option value="8" selected>8 ans</option>
+                    <option value="10">10 ans</option>
+                    <option value="12">12 ans</option>
+                </select>
+            </div>
+
+            <button class="btn-main" id="primary-btn" onclick="handleMainAction()">ENTRER</button>
+            
+            <div id="login-options">
+                <span class="auth-link" onclick="toggleForm('signup')">Pas de compte ? S'inscrire</span><br>
+                <span class="auth-link" onclick="resetPassword()">Mot de passe oublié ?</span>
+            </div>
+            
+            <div id="signup-options" class="hidden">
+                <span class="auth-link" onclick="toggleForm('login')">Déjà un compte ? Se connecter</span>
+            </div>
         </div>
     </div>
 
@@ -68,11 +97,11 @@
 
     <div class="main-container">
         <div id="chat-window">
-            <div class="message bot-msg">Bonjour Louis ! Je suis Cogitron, propulsé par **Mistral Large**, l'IA la plus puissante. Prêt à explorer ? 🚀</div>
+            <div class="message bot-msg">Bonjour Louis ! Cogitron est prêt. 🚀</div>
         </div>
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="user-input" placeholder="Pose ta question à Mistral..." onkeypress="if(event.key==='Enter') askAI()">
+                <input type="text" id="user-input" placeholder="Dis quelque chose..." onkeypress="if(event.key==='Enter') askAI()">
                 <button class="send-btn" onclick="askAI()">🚀</button>
             </div>
         </div>
@@ -84,56 +113,80 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
         
         const clientSB = supabase.createClient(SB_URL, SB_KEY);
-        let firstMsg = true;
+        let isSignUpMode = false;
 
-        async function handleAuth(type) {
+        // BASCULER ENTRE CONNEXION ET INSCRIPTION
+        function toggleForm(mode) {
+            const extra = document.getElementById('extra-fields');
+            const title = document.getElementById('form-title');
+            const btn = document.getElementById('primary-btn');
+            const loginOpts = document.getElementById('login-options');
+            const signupOpts = document.getElementById('signup-options');
+
+            if (mode === 'signup') {
+                isSignUpMode = true;
+                extra.classList.remove('hidden');
+                title.innerText = "INSCRIPTION";
+                btn.innerText = "CRÉER MON COMPTE";
+                loginOpts.classList.add('hidden');
+                signupOpts.classList.remove('hidden');
+            } else {
+                isSignUpMode = false;
+                extra.classList.add('hidden');
+                title.innerText = "CONNEXION";
+                btn.innerText = "ENTRER";
+                loginOpts.classList.remove('hidden');
+                signupOpts.classList.add('hidden');
+            }
+        }
+
+        async function handleMainAction() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const { error } = await clientSB.auth.signInWithPassword({ email, password });
-            if (error) alert("Erreur : " + error.message);
-            else document.getElementById('auth-overlay').style.display = 'none';
+
+            if (isSignUpMode) {
+                const username = document.getElementById('username').value;
+                const age = document.getElementById('age').value;
+                const { error } = await clientSB.auth.signUp({
+                    email, password,
+                    options: { data: { nickname: username, user_age: age } }
+                });
+                if (error) alert(error.message);
+                else alert("Compte créé ! Tu peux maintenant te connecter.");
+            } else {
+                const { error } = await clientSB.auth.signInWithPassword({ email, password });
+                if (error) alert(error.message);
+                else document.getElementById('auth-overlay').style.display = 'none';
+            }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('email').value;
+            if (!email) return alert("Écris ton email d'abord !");
+            const { error } = await clientSB.auth.resetPasswordForEmail(email);
+            if (error) alert(error.message);
+            else alert("Vérifie ta boîte mail pour changer ton mot de passe !");
         }
 
         async function askAI() {
             const inputField = document.getElementById('user-input');
             const text = inputField.value.trim();
             if (!text) return;
-
-            if(firstMsg) {
-                const hist = document.getElementById('history');
-                hist.innerHTML = `<div class="history-item">💬 ${text.substring(0,20)}...</div>` + hist.innerHTML;
-                firstMsg = false;
-            }
-
             addMsg(text, 'user-msg');
             inputField.value = '';
 
             try {
                 const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
                     method: "POST",
-                    headers: { 
-                        "Authorization": `Bearer ${MISTRAL_KEY}`, 
-                        "Content-Type": "application/json" 
-                    },
+                    headers: { "Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        "model": "mistral-large-latest", // LA VERSION LA PLUS PUISSANTE
-                        "messages": [
-                            { "role": "system", "content": "Tu es Cogitron, une IA ultra-puissante pour enfant. Tu réponds avec pédagogie, clarté et beaucoup d'enthousiasme en français." },
-                            { "role": "user", "content": text }
-                        ]
+                        "model": "mistral-large-latest",
+                        "messages": [{ "role": "system", "content": "Tu es Cogitron, IA pour enfant." }, { "role": "user", "content": text }]
                     })
                 });
-
                 const data = await res.json();
-                
-                if(data.error) {
-                    addMsg("Oups ! Mistral dit : " + data.error.message, 'bot-msg');
-                } else {
-                    addMsg(data.choices[0].message.content, 'bot-msg');
-                }
-            } catch (err) {
-                addMsg("Erreur de connexion avec Mistral. Vérifie ton plan !", 'bot-msg');
-            }
+                addMsg(data.choices[0].message.content, 'bot-msg');
+            } catch (err) { addMsg("Erreur Mistral.", 'bot-msg'); }
         }
 
         function addMsg(text, type) {
