@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Pro 🚀</title>
+    <title>Cogitron Mistral Pro 🚀</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -17,188 +17,35 @@
             --text-main: #e0e0e0;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* --- SIDEBAR --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #2d2d2d;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            z-index: 10;
-        }
-
-        .logo-neon {
-            font-family: 'Rajdhani', sans-serif;
-            color: var(--neon-blue);
-            font-size: 1.8rem;
-            margin: 0 0 30px 0;
-            text-shadow: 0 0 10px var(--neon-blue);
-        }
-
-        .new-chat-btn {
-            border: 1px solid var(--neon-pink);
-            background: transparent;
-            color: var(--neon-pink);
-            padding: 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 25px;
-            transition: 0.3s;
-        }
-
-        .new-chat-btn:hover { background: rgba(255, 0, 127, 0.1); box-shadow: 0 0 15px rgba(255, 0, 127, 0.2); }
-
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid #2d2d2d; display: flex; flex-direction: column; padding: 20px; z-index: 10; }
+        .logo-neon { font-family: 'Rajdhani', sans-serif; color: var(--neon-blue); font-size: 1.8rem; margin: 0 0 30px 0; text-shadow: 0 0 10px var(--neon-blue); }
+        .new-chat-btn { border: 1px solid var(--neon-pink); background: transparent; color: var(--neon-pink); padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 600; margin-bottom: 25px; transition: 0.3s; }
         .history-list { flex-grow: 1; overflow-y: auto; }
-        .history-item {
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #888;
-            background: rgba(255,255,255,0.03);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            border-left: 2px solid transparent;
-        }
-        .history-item:hover { color: white; border-left: 2px solid var(--neon-blue); background: rgba(0, 212, 255, 0.05); }
+        .history-item { padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #888; background: rgba(255,255,255,0.03); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 2px solid transparent; }
 
-        /* --- ZONE DE CHAT --- */
-        .main-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--chat-bg);
-            position: relative;
-        }
-
-        #chat-window {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 40px 20% 120px 20%;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            scroll-behavior: smooth;
-        }
-
-        .message {
-            max-width: 80%;
-            line-height: 1.7;
-            padding: 15px 22px;
-            border-radius: 20px;
-            font-size: 1.05rem;
-            word-wrap: break-word;
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        /* --- ZONE DE CHAT (LARGUE ET CLAIRE) --- */
+        .main-container { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--chat-bg); position: relative; }
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 40px 20% 120px 20%; display: flex; flex-direction: column; gap: 25px; scroll-behavior: smooth; }
+        .message { max-width: 80%; line-height: 1.7; padding: 15px 22px; border-radius: 20px; font-size: 1.05rem; word-wrap: break-word; animation: slideUp 0.3s ease-out; }
         .message p { margin: 10px 0; }
-        .message ul, .message ol { padding-left: 25px; }
-
-        .user-msg {
-            align-self: flex-end;
-            background: #2b2d3e;
-            color: #fff;
-            border-bottom-right-radius: 4px;
-            border-right: 4px solid var(--neon-pink);
-        }
-
-        .bot-msg {
-            align-self: flex-start;
-            background: #1e2235;
-            color: #e0e0e0;
-            border-bottom-left-radius: 4px;
-            border-left: 4px solid var(--neon-blue);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
+        .user-msg { align-self: flex-end; background: #2b2d3e; border-bottom-right-radius: 4px; border-right: 4px solid var(--neon-pink); }
+        .bot-msg { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 4px; border-left: 4px solid var(--neon-blue); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
         /* --- INPUT --- */
-        .input-area {
-            padding: 20px 20% 40px 20%;
-            background: linear-gradient(transparent, var(--chat-bg) 60%);
-            position: absolute;
-            bottom: 0;
-            width: 60%;
-        }
+        .input-area { padding: 20px 20% 40px 20%; background: linear-gradient(transparent, var(--chat-bg) 60%); position: absolute; bottom: 0; width: 60%; }
+        .input-wrapper { display: flex; background: #252839; border: 1px solid #3d405b; border-radius: 18px; padding: 8px 15px; align-items: center; }
+        #user-input { flex-grow: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 1.1rem; outline: none; }
+        .send-btn { background: var(--neon-blue); border: none; width: 45px; height: 45px; border-radius: 12px; cursor: pointer; font-size: 1.3rem; }
 
-        .input-wrapper {
-            display: flex;
-            background: #252839;
-            border: 1px solid #3d405b;
-            border-radius: 18px;
-            padding: 8px 15px;
-            align-items: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-        }
-
-        #user-input {
-            flex-grow: 1;
-            background: transparent;
-            border: none;
-            padding: 12px;
-            color: white;
-            font-size: 1.1rem;
-            outline: none;
-        }
-
-        .send-btn {
-            background: var(--neon-blue);
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.3rem;
-            transition: 0.2s;
-        }
-        .send-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
-
-        /* --- AUTH OVERLAY --- */
-        #auth-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-dark);
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .auth-card {
-            background: #161925;
-            padding: 40px;
-            border-radius: 25px;
-            border: 1px solid var(--neon-blue);
-            text-align: center;
-            width: 320px;
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
-        }
-
-        .auth-card input, .auth-card select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #3d405b;
-            background: #0a0b10;
-            color: white;
-            box-sizing: border-box;
-        }
+        /* --- AUTH --- */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .auth-card { background: #161925; padding: 40px; border-radius: 25px; border: 1px solid var(--neon-blue); text-align: center; width: 320px; }
+        .auth-card input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #3d405b; background: #0a0b10; color: white; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -206,25 +53,10 @@
     <div id="auth-overlay">
         <div class="auth-card">
             <h1 class="logo-neon">COGITRON</h1>
-            <input type="email" id="email" placeholder="Email (Parents)">
-            <input type="password" id="password" placeholder="Mot de passe secret">
-            
-            <div style="text-align: left; margin: 10px 0; font-size: 0.9rem; color: #888;">
-                <label>Tu as quel âge ?</label>
-                <select id="user-age">
-                    <option value="6">6 ans</option>
-                    <option value="8" selected>8 ans</option>
-                     <option value="9">9 ans</option>
-                    <option value="10">10 ans</option>
-                    <option value="12">12 ans</option>
-                     <option value="13">13 ans</option>
-                     <option value="14">14 ans</option>
-                     <option value="15">15 ans</option>
-                </select>
-            </div>
-
-            <button onclick="handleAuth('signIn')" style="width:100%; padding:14px; background:var(--neon-blue); color:black; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:10px;">SE CONNECTER</button>
-            <button onclick="handleAuth('signUp')" style="width:100%; padding:14px; background:transparent; color:var(--neon-pink); border:1px solid var(--neon-pink); border-radius:10px; cursor:pointer; font-weight:bold; margin-top:15px;">S'INSCRIRE</button>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button onclick="handleAuth('signIn')" style="width:100%; padding:14px; background:var(--neon-blue); color:black; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-top:10px;">ENTRER</button>
+            <p style="font-size: 0.8rem; color: #555; margin-top: 10px;">Connecte-toi pour parler à Mistral</p>
         </div>
     </div>
 
@@ -232,57 +64,34 @@
         <h1 class="logo-neon" style="font-size: 1.5rem;">COGITRON</h1>
         <button class="new-chat-btn" onclick="location.reload()">+ Nouveau Chat</button>
         <div class="history-list" id="history"></div>
-        <div style="font-size:0.7rem; color:#444; margin-top: 15px;">Session active: <br><span id="user-tag">---</span></div>
     </div>
 
     <div class="main-container">
         <div id="chat-window">
-            <div class="message bot-msg">Bienvenue Louis ! Je suis Cogitron, ton assistant robot. De quoi veux-tu discuter aujourd'hui ? 🤖</div>
+            <div class="message bot-msg">Bonjour Louis ! Je suis Cogitron, propulsé par **Mistral Large**, l'IA la plus puissante. Prêt à explorer ? 🚀</div>
         </div>
-
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="user-input" placeholder="Pose ta question ici..." onkeypress="if(event.key==='Enter') askAI()">
+                <input type="text" id="user-input" placeholder="Pose ta question à Mistral..." onkeypress="if(event.key==='Enter') askAI()">
                 <button class="send-btn" onclick="askAI()">🚀</button>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION
+        const MISTRAL_KEY = "qa0N1MUpsE6kO0WkQQESX0DpAZ2lg6b0"; 
         const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
-        const GROQ_KEY = "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";
         
         const clientSB = supabase.createClient(SB_URL, SB_KEY);
-        let currentAge = 8;
-        let isFirstMessage = true;
+        let firstMsg = true;
 
         async function handleAuth(type) {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            currentAge = document.getElementById('user-age').value;
-
-            if(!email || !password) return alert("Remplis bien tous les champs !");
-
-            const { data, error } = (type === 'signUp') 
-                ? await clientSB.auth.signUp({ 
-                    email, 
-                    password, 
-                    options: { data: { age: currentAge } } 
-                })
-                : await clientSB.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                alert("Erreur : " + error.message);
-            } else {
-                if (type === 'signUp') {
-                    alert("Compte créé ! Tu peux maintenant te connecter.");
-                } else {
-                    document.getElementById('auth-overlay').style.display = 'none';
-                    document.getElementById('user-tag').innerText = email;
-                }
-            }
+            const { error } = await clientSB.auth.signInWithPassword({ email, password });
+            if (error) alert("Erreur : " + error.message);
+            else document.getElementById('auth-overlay').style.display = 'none';
         }
 
         async function askAI() {
@@ -290,38 +99,40 @@
             const text = inputField.value.trim();
             if (!text) return;
 
-            // Ajout à la sidebar au premier message
-            if(isFirstMessage) {
+            if(firstMsg) {
                 const hist = document.getElementById('history');
-                const title = text.length > 20 ? text.substring(0, 20) + "..." : text;
-                hist.innerHTML = `<div class="history-item">💬 ${title}</div>` + hist.innerHTML;
-                isFirstMessage = false;
+                hist.innerHTML = `<div class="history-item">💬 ${text.substring(0,20)}...</div>` + hist.innerHTML;
+                firstMsg = false;
             }
 
             addMsg(text, 'user-msg');
             inputField.value = '';
 
             try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
                     method: "POST",
                     headers: { 
-                        "Authorization": `Bearer ${GROQ_KEY}`, 
+                        "Authorization": `Bearer ${MISTRAL_KEY}`, 
                         "Content-Type": "application/json" 
                     },
                     body: JSON.stringify({
-                        "model": "llama-3.3-70b-versatile",
+                        "model": "mistral-large-latest", // LA VERSION LA PLUS PUISSANTE
                         "messages": [
-                            { "role": "system", "content": `Tu es Cogitron, une IA pour un enfant de ${currentAge} ans. Réponds avec des phrases claires, utilise des listes et des emojis. Sois très encourageant et instructif.` },
+                            { "role": "system", "content": "Tu es Cogitron, une IA ultra-puissante pour enfant. Tu réponds avec pédagogie, clarté et beaucoup d'enthousiasme en français." },
                             { "role": "user", "content": text }
                         ]
                     })
                 });
 
                 const data = await res.json();
-                const aiReply = data.choices[0].message.content;
-                addMsg(aiReply, 'bot-msg');
+                
+                if(data.error) {
+                    addMsg("Oups ! Mistral dit : " + data.error.message, 'bot-msg');
+                } else {
+                    addMsg(data.choices[0].message.content, 'bot-msg');
+                }
             } catch (err) {
-                addMsg("Mince, j'ai une petite erreur de connexion. Réessaie !", 'bot-msg');
+                addMsg("Erreur de connexion avec Mistral. Vérifie ton plan !", 'bot-msg');
             }
         }
 
@@ -329,7 +140,6 @@
             const win = document.getElementById('chat-window');
             const div = document.createElement('div');
             div.className = `message ${type}`;
-            // Rendu Markdown pour les listes et le gras
             div.innerHTML = marked.parse(text);
             win.appendChild(div);
             win.scrollTop = win.scrollHeight;
