@@ -2,58 +2,151 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Cogitron Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cogitron Kids 🚀</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #050505; color: #00f2fe; font-family: sans-serif; text-align: center; padding: 50px; }
-        #chat { background: #111; border: 1px solid #333; padding: 20px; border-radius: 10px; min-height: 200px; margin-bottom: 20px; overflow-y: auto; }
-        input { background: #222; border: 1px solid #444; color: white; padding: 10px; width: 70%; border-radius: 5px; }
-        button { padding: 10px 20px; background: #00f2fe; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --bg: #F7FFF7;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .kids-card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border: 4px solid var(--secondary);
+        }
+        input, select {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            font-size: 16px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 5px;
+        }
+        button:hover { transform: scale(1.05); }
+        #chat-section { display: none; width: 100%; max-width: 600px; }
+        .bot-msg { background: #e8f4fd; padding: 15px; border-radius: 15px; margin: 10px 0; }
     </style>
 </head>
 <body>
-    <h1>COGITRON NEURAL v12</h1>
-    <div id="chat">Système prêt. Dis-moi "Salut" !</div>
-    <input type="text" id="userInput" placeholder="Ecris ici...">
-    <button onclick="askAI()">ENVOYER</button>
+
+    <div id="auth-section" class="kids-card">
+        <h1>Coucou ! 👋</h1>
+        <p>Demande à tes parents de t'aider à créer ton compte Cogitron.</p>
+        <input type="email" id="email" placeholder="Email (celui des parents)">
+        <input type="password" id="password" placeholder="Mot de passe secret">
+        
+        <label for="user-age">Ton âge :</label>
+        <select id="user-age">
+            <option value="6">6 ans</option>
+            <option value="8">8 ans</option>
+            <option value="10">10 ans</option>
+            <option value="12">12 ans</option>
+        </select>
+
+        <button onclick="handleAuth('signUp')">Créer mon compte</button>
+        <button onclick="handleAuth('signIn')" style="background: var(--secondary)">Se connecter</button>
+    </div>
+
+    <div id="chat-section">
+        <div class="kids-card">
+            <h2>Discuter avec Cogitron 🤖</h2>
+            <div id="chat-box"></div>
+            <input type="text" id="user-input" placeholder="Pose-moi une question...">
+            <button onclick="askAI()">Envoyer 🚀</button>
+            <button onclick="signOut()" style="background:#666">Quitter</button>
+        </div>
+    </div>
 
     <script>
-        // METS TA NOUVELLE CLÉ ICI
-        const API_KEY = "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"; 
+        // 1. CONFIGURATION (METS TES INFOS ICI)
+        const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
+        const GROQ_KEY = "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";
+        
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
+        let userAge = 8;
 
-        async function askAI() {
-            const input = document.getElementById('userInput');
-            const chat = document.getElementById('chat');
-            const prompt = input.value;
-            if(!prompt) return;
+        // 2. GESTION COMPTE (SUPABASE)
+        async function handleAuth(type) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            userAge = document.getElementById('user-age').value;
 
-            chat.innerHTML += `<p style="color:white"><b>Toi:</b> ${prompt}</p>`;
-            input.value = "";
+            const { data, error } = await supabase.auth[type]({
+                email,
+                password,
+                options: { data: { age: userAge } }
+            });
 
-            try {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": `Bearer ${API_KEY}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [{ role: "user", content: prompt }]
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (data.error) {
-                    chat.innerHTML += `<p style="color:red"><b>Erreur API:</b> ${data.error.message}</p>`;
-                } else {
-                    const reply = data.choices[0].message.content;
-                    chat.innerHTML += `<p style="color:#9d50bb"><b>IA:</b> ${reply}</p>`;
-                }
-            } catch (err) {
-                chat.innerHTML += `<p style="color:red"><b>Erreur Réseau:</b> Impossible de contacter Groq.</p>`;
+            if (error) alert("Oups : " + error.message);
+            else {
+                if (type === 'signUp') alert("Demande à tes parents de cliquer sur le lien reçu par email !");
+                else showChat();
             }
-            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function showChat() {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('chat-section').style.display = 'block';
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
+
+        // 3. LOGIQUE IA (GROQ)
+        async function askAI() {
+            const input = document.getElementById('user-input').value;
+            const chatBox = document.getElementById('chat-box');
+            
+            chatBox.innerHTML += `<p><b>Toi:</b> ${input}</p>`;
+            
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${GROQ_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [
+                        { "role": "system", "content": `Tu es un robot gentil pour un enfant de ${userAge} ans. Explique simplement, sans violence et sois encourageant.` },
+                        { "role": "user", "content": input }
+                    ]
+                })
+            });
+
+            const result = await response.json();
+            const reply = result.choices[0].message.content;
+            chatBox.innerHTML += `<div class="bot-msg"><b>Cogitron:</b> ${reply}</div>`;
+            document.getElementById('user-input').value = "";
         }
     </script>
 </body>
