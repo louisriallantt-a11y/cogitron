@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cogitron Mistral Pro 🚀</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -15,28 +14,20 @@
             --sidebar-bg: #11131f; --chat-bg: #161925; --text-main: #e0e0e0;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* SIDEBAR */
         .sidebar { width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid #2d2d2d; display: flex; flex-direction: column; padding: 20px; }
         .logo-neon { font-family: 'Rajdhani', sans-serif; color: var(--neon-blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--neon-blue); margin-bottom: 30px; }
         .new-chat-btn { border: 1px solid var(--neon-pink); background: transparent; color: var(--neon-pink); padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
         .history-list { flex-grow: 1; overflow-y: auto; }
         .logout-btn { color: #ff4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 10px; border-top: 1px solid #333; text-align: left; }
-
-        /* CHAT AREA */
         .main-container { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--chat-bg); position: relative; }
         #chat-window { flex-grow: 1; overflow-y: auto; padding: 40px 15% 120px 15%; display: flex; flex-direction: column; gap: 20px; }
         .message { max-width: 85%; padding: 15px 20px; border-radius: 18px; line-height: 1.5; animation: slide 0.3s ease; }
         .user-msg { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--neon-pink); }
         .bot-msg { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--neon-blue); }
-        
-        /* INPUT */
         .input-area { padding: 20px 15% 40px 15%; position: absolute; bottom: 0; width: 70%; background: linear-gradient(transparent, var(--chat-bg) 50%); }
         .input-wrapper { display: flex; background: #252839; border-radius: 15px; padding: 5px 15px; border: 1px solid #3d405b; }
         #user-input { flex-grow: 1; background: transparent; border: none; padding: 12px; color: white; outline: none; }
         .send-btn { background: var(--neon-blue); border: none; border-radius: 10px; padding: 0 15px; cursor: pointer; font-weight: bold; }
-
-        /* AUTH OVERLAY */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; justify-content: center; align-items: center; }
         .auth-card { background: #161925; padding: 40px; border-radius: 25px; border: 1px solid var(--neon-blue); width: 320px; text-align: center; }
         .auth-card input, .auth-card select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #3d405b; background: #0a0b10; color: white; box-sizing: border-box; }
@@ -56,8 +47,14 @@
             
             <div id="extra-fields" class="hidden">
                 <input type="text" id="username" placeholder="Ton Pseudo">
+                <div style="text-align: left; font-size: 0.8rem; color: #888; margin: 10px 0 5px 0;">Choisis ton âge :</div>
                 <select id="age">
-                    <option value="12">De 10 à 15 ans</option>
+                    <option value="10">10 ans</option>
+                    <option value="11">11 ans</option>
+                    <option value="12" selected>12 ans</option>
+                    <option value="13">13 ans</option>
+                    <option value="14">14 ans</option>
+                    <option value="15">15 ans</option>
                 </select>
             </div>
 
@@ -85,7 +82,6 @@
     </div>
 
     <script>
-        // CONFIG
         const MISTRAL_KEY = "qa0N1MUpsE6kO0WkQQESX0DpAZ2lg6b0";
         const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
@@ -94,7 +90,6 @@
         let isSignUp = false;
         let currentUser = null;
 
-        // Basculer Login / Signup
         function toggleForm() {
             isSignUp = !isSignUp;
             document.getElementById('extra-fields').classList.toggle('hidden');
@@ -102,36 +97,29 @@
             document.getElementById('toggle-link').innerText = isSignUp ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire";
         }
 
-        // Action principale
         async function handleMainAction() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
             if (isSignUp) {
                 const nick = document.getElementById('username').value;
+                const age = document.getElementById('age').value;
                 const { error } = await clientSB.auth.signUp({
-                    email, password, options: { data: { nickname: nick } }
+                    email, password, options: { data: { nickname: nick, user_age: age } }
                 });
-                if (error) alert(error.message);
-                else alert("Vérifie tes mails !");
+                if (error) alert(error.message); else alert("Vérifie tes mails !");
             } else {
                 const { error } = await clientSB.auth.signInWithPassword({ email, password });
                 if (error) alert("Email ou mot de passe incorrect");
             }
         }
 
-        // Chat
         async function askAI() {
             const input = document.getElementById('user-input');
             const text = input.value.trim();
             if (!text || !currentUser) return;
-
             addMsg(text, 'user-msg');
             input.value = '';
-            
-            // Sauvegarde Supabase
             await clientSB.from('messages').insert([{ user_id: currentUser.id, role: 'user', content: text }]);
-
             try {
                 const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
                     method: "POST",
@@ -139,7 +127,7 @@
                     body: JSON.stringify({
                         "model": "mistral-large-latest",
                         "messages": [
-                            { "role": "system", "content": "Tu es Cogitron, IA cool pour ado (10-15 ans). Aide Louis au mieux." },
+                            { "role": "system", "content": "Tu es Cogitron, une IA intelligente et cool. Tu t'adaptes au niveau d'un élève de 10 à 15 ans. Ne sois pas trop enfantin, sois précis et amical." },
                             { "role": "user", "content": text }
                         ]
                     })
@@ -148,9 +136,7 @@
                 const reply = data.choices[0].message.content;
                 addMsg(reply, 'bot-msg');
                 await clientSB.from('messages').insert([{ user_id: currentUser.id, role: 'bot', content: reply }]);
-            } catch (e) {
-                addMsg("Erreur Mistral...", 'bot-msg');
-            }
+            } catch (e) { addMsg("Erreur Mistral...", 'bot-msg'); }
         }
 
         function addMsg(text, type) {
@@ -176,12 +162,8 @@
             }
         }
 
-        async function logout() {
-            await clientSB.auth.signOut();
-            location.reload();
-        }
+        async function logout() { await clientSB.auth.signOut(); location.reload(); }
 
-        // Surveillance de la connexion
         clientSB.auth.onAuthStateChange((event, session) => {
             if (session) {
                 currentUser = session.user;
