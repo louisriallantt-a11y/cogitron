@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron 2026 Pro</title>
+    <title>Cogitron Master Pro 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
         :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; transition: 0.3s; z-index: 1000; }
         @media (max-width: 1024px) { .sidebar { position: absolute; left: -320px; height: 100%; } .sidebar.open { left: 0; } }
         .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); }
-        .btn-new { border: 1px solid var(--pink); background: none; color: var(--pink); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 15px 0; width: 100%; }
+        .btn-new { border: 1px solid var(--pink); background: none; color: var(--pink); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 10px 0; width: 100%; }
+        .btn-prof { border: 1px solid #ffcc00; background: none; color: #ffcc00; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
         .history { flex-grow: 1; overflow-y: auto; }
         .chat-link { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 5px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; }
         .chat-link.active { border-left: 3px solid var(--blue); background: rgba(0, 212, 255, 0.1); }
@@ -39,21 +40,18 @@
 <div id="auth">
     <div class="auth-card">
         <h1 class="logo">COGITRON</h1>
-        <div id="auth-form">
-            <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
-            <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
-            <div id="signup-fields" class="hidden">
-                <input type="text" id="nick" placeholder="Pseudo" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
-            </div>
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--blue); border:none; margin-top:10px; font-weight:bold; cursor:pointer;">VALIDER</button>
-            <p onclick="toggleAuth()" style="cursor:pointer; font-size:0.8rem; color:#888; margin-top:10px;">Changer Connexion/Inscription</p>
-        </div>
+        <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff;">
+        <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff;">
+        <div id="signup-fields" class="hidden"><input type="text" id="nick" placeholder="Pseudo" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff;"></div>
+        <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--blue); border:none; margin-top:10px; font-weight:bold; cursor:pointer;">VALIDER</button>
+        <p onclick="toggleAuth()" style="cursor:pointer; font-size:0.8rem; color:#888; margin-top:10px;">Login / Inscription</p>
     </div>
 </div>
 
 <div class="sidebar" id="sidebar">
     <h2 class="logo">COGITRON</h2>
     <button class="btn-new" onclick="createNewChat()">+ Nouveau Chat</button>
+    <button class="btn-prof" onclick="activateProfMode()">🎓 Mode Prof (Révisions)</button>
     <div class="history" id="history"></div>
     <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; border:none; cursor:pointer; margin-top:20px;">🚪 Quitter</button>
 </div>
@@ -62,7 +60,7 @@
     <div id="chat-window"></div>
     <div class="input-box">
         <div class="input-wrap">
-            <input type="text" id="user-input" placeholder="Message..." onkeypress="if(event.key==='Enter') askAI()">
+            <input type="text" id="user-input" placeholder="Parle à Cogitron..." onkeypress="if(event.key==='Enter') askAI()">
             <button onclick="askAI()" style="background:var(--blue); border:none; border-radius:10px; padding:10px; font-weight:bold;">ENVOYER</button>
         </div>
     </div>
@@ -72,46 +70,53 @@
     const MISTRAL_KEY = "qa0N1MUpsE6kO0WkQQESX0DpAZ2lg6b0";
     const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
-    const sb = supabase.createClient(SB_URL, SB_KEY);
+    
+    // Configuration spéciale pour éviter le blocage tablette
+    const sb = supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
-    let user = null, chatId = null, isSignup = false;
+    let user = null, chatId = null, isSignup = false, isProfMode = false;
 
     function toggleAuth() { isSignup = !isSignup; document.getElementById('signup-fields').classList.toggle('hidden'); }
 
     async function handleAuth() {
-        const email = document.getElementById('email').value;
-        const p = document.getElementById('pass').value;
+        const email = document.getElementById('email').value, p = document.getElementById('pass').value;
         if(isSignup) {
             await sb.auth.signUp({email, password:p, options:{data:{nickname:document.getElementById('nick').value}}});
             alert("Vérifie tes mails !");
         } else {
             const {error} = await sb.auth.signInWithPassword({email, password:p});
-            if(error) alert("Erreur de connexion");
+            if(error) alert("Connexion impossible. Vérifie tes accès.");
         }
     }
 
-    async function createNewChat() {
-        const {data, error} = await sb.from('chats').insert([{user_id: user.id, title:'Nouvelle discussion'}]).select();
+    async function createNewChat(title = 'Nouvelle discussion') {
+        if(!user) return;
+        const {data} = await sb.from('chats').insert([{user_id: user.id, title: title}]).select();
         if(data) {
             chatId = data[0].id;
             document.getElementById('chat-window').innerHTML = '';
             refreshSidebar();
-            if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
+            return data[0].id;
         }
     }
 
+    async function activateProfMode() {
+        isProfMode = true;
+        await createNewChat("🎓 Révisions Prof");
+        addMsg("Salut Louis ! Je passe en **Mode Prof**. Quelle matière veux-tu réviser ? (Maths, Histoire, Sciences...)", "bot");
+    }
+
     async function refreshSidebar() {
+        if(!user) return;
         const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
         const container = document.getElementById('history');
         container.innerHTML = '';
-        if(data) {
-            data.forEach(c => {
-                const d = document.createElement('div');
-                d.className = `chat-link ${c.id === chatId ? 'active' : ''}`;
-                d.innerHTML = `<span style="flex:1" onclick="loadChat('${c.id}')">${c.title}</span><span onclick="deleteChat('${c.id}')">🗑️</span>`;
-                container.appendChild(d);
-            });
-        }
+        if(data) data.forEach(c => {
+            const d = document.createElement('div');
+            d.className = `chat-link ${c.id === chatId ? 'active' : ''}`;
+            d.innerHTML = `<span style="flex:1" onclick="loadChat('${c.id}')">${c.title}</span><span onclick="deleteChat('${c.id}')">🗑️</span>`;
+            container.appendChild(d);
+        });
     }
 
     async function loadChat(id) {
@@ -120,11 +125,10 @@
         document.getElementById('chat-window').innerHTML = '';
         if(data) data.forEach(m => addMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
         refreshSidebar();
-        if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
     }
 
     async function deleteChat(id) {
-        if(confirm("Supprimer ?")) { await sb.from('chats').delete().eq('id', id); refreshSidebar(); }
+        if(confirm("Supprimer ce chat ?")) { await sb.from('chats').delete().eq('id', id); refreshSidebar(); }
     }
 
     async function askAI() {
@@ -135,31 +139,31 @@
         addMsg(text, 'user');
         input.value = '';
         
-        // Sauvegarde message user
         await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
+
+        let systemPrompt = "Tu es Cogitron, IA cool pour ado de 12 ans.";
+        if(isProfMode) systemPrompt = "Tu es un prof cool. Pose une question à l'élève pour le tester sur son sujet, puis attends sa réponse pour le corriger.";
 
         const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
             method: "POST",
             headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "mistral-large-latest", 
-                messages: [{role:"system", content:"Tu es Cogitron, IA cool pour ado de 12 ans."}, {role:"user", content:text}]
+                messages: [{role:"system", content: systemPrompt}, {role:"user", content:text}]
             })
         });
         const data = await res.json();
         const reply = data.choices[0].message.content;
         addMsg(reply, 'bot');
-        
-        // Sauvegarde message bot
         await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
 
-        // Renommer le chat si c'est le début
-        const { data: countData } = await sb.from('messages').select('id', { count: 'exact' }).eq('chat_id', chatId);
-        if(countData && countData.length < 3) {
+        // Renommer le titre (Correction de l'erreur length)
+        const { data: checkMsgs } = await sb.from('messages').select('id').eq('chat_id', chatId);
+        if(checkMsgs && checkMsgs.length < 3) {
             const n = await fetch("https://api.mistral.ai/v1/chat/completions", {
                 method: "POST",
                 headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
-                body: JSON.stringify({model: "mistral-tiny", messages: [{role:"user", content:"Donne un titre de 3 mots max pour : "+text}]})
+                body: JSON.stringify({model: "mistral-tiny", messages: [{role:"user", content:"Titre de 3 mots max pour : "+text}]})
             });
             const nd = await n.json();
             const newTitle = nd.choices[0].message.content.replace(/"/g, '');
@@ -174,8 +178,8 @@
         d.innerHTML = marked.parse(t);
         if(type === 'bot') {
             const b = document.createElement('button');
-            b.innerHTML = "🔊";
-            b.style = "background:none; border:none; cursor:pointer; font-size:1.2rem; margin-top:5px;";
+            b.innerHTML = "🔊 ÉCOUTER";
+            b.style = "background:none; border:1px solid var(--blue); color:var(--blue); font-size:0.7rem; cursor:pointer; margin-top:10px; border-radius:5px; padding:3px 8px;";
             b.onclick = () => speak(t);
             d.appendChild(b);
         }
@@ -185,9 +189,10 @@
 
     function speak(t) {
         window.speechSynthesis.cancel();
-        // Regex pour enlever les emojis et les caractères spéciaux markdown
-        const cleanText = t.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '')
-                           .replace(/[#*`]/g, '');
+        // FILTRE ANTI-EMOJI ET ANTI-SMILEY
+        let cleanText = t.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '');
+        cleanText = cleanText.replace(/[#*`_]/g, ''); // Enlever le markdown
+        
         const u = new SpeechSynthesisUtterance(cleanText);
         u.lang = 'fr-FR';
         window.speechSynthesis.speak(u);
