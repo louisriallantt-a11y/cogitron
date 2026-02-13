@@ -3,56 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Pro 🚀</title>
+    <title>Cogitron 2026 Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
-        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --sidebar-w: 280px; }
+        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-        
-        /* SIDEBAR RESPONSIVE */
-        .sidebar { 
-            width: var(--sidebar-w); background: #11131f; border-right: 1px solid #333; 
-            display: flex; flex-direction: column; padding: 20px; transition: 0.3s;
-            position: relative; z-index: 1000;
-        }
-        
-        @media (max-width: 1024px) { /* Mode Tablette & Mobile */
-            .sidebar { position: absolute; left: calc(-1 * var(--sidebar-w) - 40px); height: 100%; }
-            .sidebar.open { left: 0; box-shadow: 10px 0 50px rgba(0,0,0,0.8); }
-            .main { width: 100vw !important; }
-        }
-
+        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; transition: 0.3s; z-index: 1000; }
+        @media (max-width: 1024px) { .sidebar { position: absolute; left: -320px; height: 100%; } .sidebar.open { left: 0; } }
         .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); }
-        .btn-new { border: 1px solid var(--pink); background: none; color: var(--pink); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 15px 0; }
-        
+        .btn-new { border: 1px solid var(--pink); background: none; color: var(--pink); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 15px 0; width: 100%; }
         .history { flex-grow: 1; overflow-y: auto; }
-        .chat-link { display: flex; justify-content: space-between; padding: 10px; margin-bottom: 5px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; }
+        .chat-link { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 5px; border-radius: 8px; background: rgba(255,255,255,0.05); cursor: pointer; font-size: 0.85rem; }
         .chat-link.active { border-left: 3px solid var(--blue); background: rgba(0, 212, 255, 0.1); }
-
-        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; width: calc(100% - var(--sidebar-w)); }
-        
-        /* Bouton Menu pour Tablette */
-        .menu-toggle { 
-            display: none; position: absolute; top: 15px; left: 15px; z-index: 1100;
-            background: var(--blue); border: none; color: black; padding: 10px; border-radius: 5px; font-weight: bold;
-        }
+        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        .menu-toggle { display: none; position: absolute; top: 15px; left: 15px; z-index: 1100; background: var(--blue); border: none; padding: 10px; border-radius: 5px; font-weight: bold; }
         @media (max-width: 1024px) { .menu-toggle { display: block; } }
-
         #chat-window { flex-grow: 1; overflow-y: auto; padding: 60px 10% 120px 10%; display: flex; flex-direction: column; gap: 15px; }
         .msg { max-width: 85%; padding: 15px; border-radius: 15px; line-height: 1.4; position: relative; }
         .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
         .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
-        
-        .input-box { padding: 20px 5%; background: linear-gradient(transparent, var(--bg) 40%); position: absolute; bottom: 0; width: 90%; left: 5%; }
-        .input-wrap { display: flex; background: #252839; border-radius: 15px; padding: 10px 15px; border: 1px solid #3d405b; align-items: center; }
+        .input-box { padding: 20px 5%; position: absolute; bottom: 0; width: 90%; left: 5%; }
+        .input-wrap { display: flex; background: #252839; border-radius: 15px; padding: 10px 15px; border: 1px solid #3d405b; }
         input { flex-grow: 1; background: none; border: none; color: white; outline: none; font-size: 1rem; }
-        
-        /* AUTH FIX */
-        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--blue); width: 100%; max-width: 350px; text-align: center; }
-        .auth-card input, .auth-card select { width: 100%; margin: 8px 0; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; box-sizing: border-box; }
+        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 3000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--blue); width: 320px; text-align: center; }
         .hidden { display: none; }
     </style>
 </head>
@@ -63,20 +39,15 @@
 <div id="auth">
     <div class="auth-card">
         <h1 class="logo">COGITRON</h1>
-        <h2 id="auth-title" style="font-size:1rem; color:var(--blue);">CONNEXION</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="pass" placeholder="Mot de passe">
-        
-        <div id="signup-fields" class="hidden">
-            <input type="text" id="nick" placeholder="Ton Pseudo">
-            <select id="age">
-                <option value="10">10 ans</option><option value="11">11 ans</option><option value="12">12 ans</option>
-                <option value="13">13 ans</option><option value="14">14 ans</option><option value="15">15 ans</option>
-            </select>
+        <div id="auth-form">
+            <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
+            <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
+            <div id="signup-fields" class="hidden">
+                <input type="text" id="nick" placeholder="Pseudo" style="width:100%; margin:5px 0; padding:10px; background:#000; color:#fff; border:1px solid #444;">
+            </div>
+            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--blue); border:none; margin-top:10px; font-weight:bold; cursor:pointer;">VALIDER</button>
+            <p onclick="toggleAuth()" style="cursor:pointer; font-size:0.8rem; color:#888; margin-top:10px;">Changer Connexion/Inscription</p>
         </div>
-        
-        <button onclick="handleAuth()" id="auth-btn" style="width:100%; padding:14px; background:var(--blue); border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">SE CONNECTER</button>
-        <p onclick="toggleAuthMode()" id="auth-toggle-text" style="font-size:0.8rem; margin-top:15px; cursor:pointer; color:#888; text-decoration:underline;">Pas de compte ? S'inscrire</p>
     </div>
 </div>
 
@@ -84,9 +55,7 @@
     <h2 class="logo">COGITRON</h2>
     <button class="btn-new" onclick="createNewChat()">+ Nouveau Chat</button>
     <div class="history" id="history"></div>
-    <div style="padding-top:10px; border-top:1px solid #333;">
-        <button onclick="sb.auth.signOut();location.reload()" style="color:#ff4444; background:none; border:none; cursor:pointer; font-size:0.9rem;">🚪 Déconnexion</button>
-    </div>
+    <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; border:none; cursor:pointer; margin-top:20px;">🚪 Quitter</button>
 </div>
 
 <div class="main">
@@ -94,7 +63,7 @@
     <div class="input-box">
         <div class="input-wrap">
             <input type="text" id="user-input" placeholder="Message..." onkeypress="if(event.key==='Enter') askAI()">
-            <button onclick="askAI()" style="background:var(--blue); border:none; border-radius:10px; padding:10px; cursor:pointer; font-weight:bold;">ENVOYER</button>
+            <button onclick="askAI()" style="background:var(--blue); border:none; border-radius:10px; padding:10px; font-weight:bold;">ENVOYER</button>
         </div>
     </div>
 </div>
@@ -105,55 +74,53 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = null, chatId = null, isSignupMode = false;
+    let user = null, chatId = null, isSignup = false;
 
-    function toggleAuthMode() {
-        isSignupMode = !isSignupMode;
-        document.getElementById('signup-fields').classList.toggle('hidden', !isSignupMode);
-        document.getElementById('auth-title').innerText = isSignupMode ? "INSCRIPTION" : "CONNEXION";
-        document.getElementById('auth-btn').innerText = isSignupMode ? "CRÉER MON COMPTE" : "SE CONNECTER";
-        document.getElementById('auth-toggle-text').innerText = isSignupMode ? "Déjà un compte ? Se connecter" : "Pas de compte ? S'inscrire";
-    }
+    function toggleAuth() { isSignup = !isSignup; document.getElementById('signup-fields').classList.toggle('hidden'); }
 
     async function handleAuth() {
         const email = document.getElementById('email').value;
         const p = document.getElementById('pass').value;
-        if(isSignupMode) {
-            const {error} = await sb.auth.signUp({email, password:p, options:{data:{nickname:document.getElementById('nick').value, age:document.getElementById('age').value}}});
-            if(error) alert(error.message); else alert("Regarde tes emails pour confirmer !");
+        if(isSignup) {
+            await sb.auth.signUp({email, password:p, options:{data:{nickname:document.getElementById('nick').value}}});
+            alert("Vérifie tes mails !");
         } else {
             const {error} = await sb.auth.signInWithPassword({email, password:p});
-            if(error) alert("Email ou mot de passe faux");
+            if(error) alert("Erreur de connexion");
         }
     }
 
     async function createNewChat() {
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title:'Nouveau Chat'}]).select();
-        chatId = data[0].id;
-        document.getElementById('chat-window').innerHTML = '';
-        if(window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
-        refreshSidebar();
+        const {data, error} = await sb.from('chats').insert([{user_id: user.id, title:'Nouvelle discussion'}]).select();
+        if(data) {
+            chatId = data[0].id;
+            document.getElementById('chat-window').innerHTML = '';
+            refreshSidebar();
+            if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
+        }
     }
 
     async function refreshSidebar() {
         const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
         const container = document.getElementById('history');
         container.innerHTML = '';
-        data.forEach(c => {
-            const d = document.createElement('div');
-            d.className = `chat-link ${c.id === chatId ? 'active' : ''}`;
-            d.innerHTML = `<span style="flex:1" onclick="loadChat('${c.id}')">${c.title}</span><span onclick="deleteChat('${c.id}')">🗑️</span>`;
-            container.appendChild(d);
-        });
+        if(data) {
+            data.forEach(c => {
+                const d = document.createElement('div');
+                d.className = `chat-link ${c.id === chatId ? 'active' : ''}`;
+                d.innerHTML = `<span style="flex:1" onclick="loadChat('${c.id}')">${c.title}</span><span onclick="deleteChat('${c.id}')">🗑️</span>`;
+                container.appendChild(d);
+            });
+        }
     }
 
     async function loadChat(id) {
         chatId = id;
         const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
         document.getElementById('chat-window').innerHTML = '';
-        data.forEach(m => addMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
-        if(window.innerWidth <= 1024) document.getElementById('sidebar').classList.remove('open');
+        if(data) data.forEach(m => addMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
         refreshSidebar();
+        if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
     }
 
     async function deleteChat(id) {
@@ -162,11 +129,13 @@
 
     async function askAI() {
         const input = document.getElementById('user-input'), text = input.value.trim();
-        if(!text) return;
+        if(!text || !user) return;
         if(!chatId) await createNewChat();
 
         addMsg(text, 'user');
         input.value = '';
+        
+        // Sauvegarde message user
         await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
 
         const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
@@ -174,24 +143,27 @@
             headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "mistral-large-latest", 
-                messages: [{role:"system", content:"Tu es Cogitron, IA cool pour ado de 10-15 ans."}, {role:"user", content:text}]
+                messages: [{role:"system", content:"Tu es Cogitron, IA cool pour ado de 12 ans."}, {role:"user", content:text}]
             })
         });
         const data = await res.json();
         const reply = data.choices[0].message.content;
         addMsg(reply, 'bot');
+        
+        // Sauvegarde message bot
         await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
 
-        // Nommage Auto après le 1er message
-        const {data:msgs} = await sb.from('messages').select('id').eq('chat_id', chatId);
-        if(msgs.length < 3) {
+        // Renommer le chat si c'est le début
+        const { data: countData } = await sb.from('messages').select('id', { count: 'exact' }).eq('chat_id', chatId);
+        if(countData && countData.length < 3) {
             const n = await fetch("https://api.mistral.ai/v1/chat/completions", {
                 method: "POST",
                 headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
-                body: JSON.stringify({model: "mistral-tiny", messages: [{role:"user", content:"Titre court (3 mots) pour : "+text}]})
+                body: JSON.stringify({model: "mistral-tiny", messages: [{role:"user", content:"Donne un titre de 3 mots max pour : "+text}]})
             });
             const nd = await n.json();
-            await sb.from('chats').update({title: nd.choices[0].message.content.replace(/"/g,'')}).eq('id', chatId);
+            const newTitle = nd.choices[0].message.content.replace(/"/g, '');
+            await sb.from('chats').update({title: newTitle}).eq('id', chatId);
             refreshSidebar();
         }
     }
@@ -201,22 +173,23 @@
         d.className = `msg ${type}`;
         d.innerHTML = marked.parse(t);
         if(type === 'bot') {
-            const btn = document.createElement('button');
-            btn.innerHTML = "🔊 ÉCOUTER";
-            btn.style = "background:none; border:1px solid var(--blue); color:var(--blue); font-size:0.7rem; cursor:pointer; margin-top:10px; border-radius:5px;";
-            btn.onclick = () => speak(t);
-            d.appendChild(btn);
+            const b = document.createElement('button');
+            b.innerHTML = "🔊";
+            b.style = "background:none; border:none; cursor:pointer; font-size:1.2rem; margin-top:5px;";
+            b.onclick = () => speak(t);
+            d.appendChild(b);
         }
         document.getElementById('chat-window').appendChild(d);
         document.getElementById('chat-window').scrollTop = 100000;
     }
 
     function speak(t) {
-        window.speechSynthesis.cancel(); // Arrête la lecture précédente
-        const cleanText = t.replace(/[#*`]/g, ''); // Nettoie le Markdown
+        window.speechSynthesis.cancel();
+        // Regex pour enlever les emojis et les caractères spéciaux markdown
+        const cleanText = t.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '')
+                           .replace(/[#*`]/g, '');
         const u = new SpeechSynthesisUtterance(cleanText);
         u.lang = 'fr-FR';
-        u.rate = 1.1; // Vitesse normale
         window.speechSynthesis.speak(u);
     }
 
