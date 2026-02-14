@@ -1,117 +1,263 @@
-// Affiche l'âge et la classe dans la barre latérale
-function setupApp() { 
-    document.getElementById('auth').style.display = 'none'; 
-    const age = parseInt(user.user_metadata.age) || 12;
-    let classe = "";
-    if (age === 10) classe = "CM2";
-    else if (age === 11) classe = "6ème";
-    else if (age === 12) classe = "5ème";
-    else if (age === 13) classe = "4ème";
-    else if (age === 14) classe = "3ème";
-    else if (age === 15) classe = "2nde";
-    else if (age === 16) classe = "1ère";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cogitron Turbo - Louis</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Barre latérale */
+        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; transition: 0.3s; z-index: 1000; }
+        @media (max-width: 1024px) { .sidebar { position: absolute; left: -320px; height: 100%; } .sidebar.open { left: 0; } }
+        
+        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); margin-bottom: 10px; text-align: center; }
+        #user-info { font-size: 0.85rem; color: #888; text-align: center; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        
+        .btn-new { border: 1px solid var(--pink); background: none; color: var(--pink); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 10px; width: 100%; }
+        .btn-prof { border: 1px solid #ffcc00; background: none; color: #ffcc00; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 20px; width: 100%; }
+        .btn-prof.active { background: #ffcc00; color: black; }
+
+        .history { flex-grow: 1; overflow-y: auto; }
+        .chat-link { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 8px; border-radius: 10px; background: rgba(255,255,255,0.05); cursor: pointer; border: 1px solid transparent; }
+        .chat-link span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; font-size: 0.9rem; }
+        .chat-link:hover { background: rgba(255,255,255,0.1); }
+        .chat-link.active { border-color: var(--blue); background: rgba(0, 212, 255, 0.1); }
+
+        /* Zone de Chat */
+        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #0a0b10; }
+        .menu-toggle { display: none; position: absolute; top: 15px; left: 15px; z-index: 1100; background: var(--blue); border: none; padding: 10px; border-radius: 8px; cursor: pointer; color: black; font-weight: bold; }
+        @media (max-width: 1024px) { .menu-toggle { display: block; } }
+
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 60px 5% 120px 5%; display: flex; flex-direction: column; gap: 20px; }
+        .msg { max-width: 85%; padding: 15px; border-radius: 18px; line-height: 1.5; font-size: 1rem; position: relative; }
+        .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); border-bottom-right-radius: 2px; }
+        .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); border-bottom-left-radius: 2px; }
+
+        /* Input */
+        .input-box { padding: 20px; position: absolute; bottom: 0; width: 100%; box-sizing: border-box; background: linear-gradient(transparent, var(--bg) 50%); }
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 15px; padding: 8px 15px; border: 1px solid #3d405b; max-width: 800px; margin: 0 auto; }
+        input, select { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 10px; font-size: 1rem; }
+        .btn-send { background: var(--blue); border: none; border-radius: 10px; padding: 10px 20px; font-weight: bold; cursor: pointer; color: black; }
+
+        /* Auth */
+        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #161925; padding: 30px; border-radius: 25px; border: 1px solid var(--blue); width: 320px; text-align: center; box-shadow: 0 0 30px rgba(0, 212, 255, 0.1); }
+        .auth-card input, .auth-card select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: white; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">MENU</button>
+
+<div id="auth">
+    <div class="auth-card">
+        <h1 class="logo">COGITRON</h1>
+        <div id="auth-inputs">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pass" placeholder="Mot de passe">
+            <div id="signup-fields" style="display:none;">
+                <input type="text" id="nick" placeholder="Ton Pseudo">
+                <select id="user-age">
+                    <option value="10">J'ai 10 ans (CM2)</option>
+                    <option value="11">J'ai 11 ans (6ème)</option>
+                    <option value="12">J'ai 12 ans (5ème)</option>
+                    <option value="13">J'ai 13 ans (4ème)</option>
+                    <option value="14">J'ai 14 ans (3ème)</option>
+                    <option value="15">J'ai 15 ans (2nde)</option>
+                    <option value="16">J'ai 16 ans (1ère)</option>
+                </select>
+            </div>
+        </div>
+        <button id="auth-btn" onclick="handleAuth()" style="width:100%; padding:14px; background:var(--blue); border:none; border-radius:10px; font-weight:bold; cursor:pointer; margin-top:10px;">CONNEXION</button>
+        <p id="toggle-text" onclick="toggleSignup()" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">Pas de compte ? S'inscrire</p>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <h2 class="logo">COGITRON</h2>
+    <div id="user-info">Profil : Chargement...</div>
+    <button class="btn-new" onclick="startNormalChat()">+ Nouveau Chat</button>
+    <button class="btn-prof" id="prof-btn" onclick="activateProfMode()">🎓 Mode Prof</button>
+    <div class="history" id="history"></div>
+    <button onclick="sb.auth.signOut();location.reload()" style="color:#ff4444; background:none; border:none; cursor:pointer; margin-top:20px; font-weight:bold;">🚪 Quitter</button>
+</div>
+
+<div class="main">
+    <div id="chat-window"></div>
+    <div class="input-box">
+        <div class="input-wrap">
+            <input type="text" id="user-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') askAI()">
+            <button class="btn-send" onclick="askAI()">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const MISTRAL_KEY = "qa0N1MUpsE6kO0WkQQESX0DpAZ2lg6b0";
+    const GROQ_KEY = "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";
+    const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     
-    document.getElementById('user-info').innerText = `Profil : ${age} ans (${classe})`;
-    refreshSidebar(); 
-}
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+    let user = null, chatId = null, isProfMode = false, isSignupMode = false;
 
-// L'IA adapte son langage à ta classe
-async function askAI() {
-    const input = document.getElementById('user-input'), text = input.value.trim();
-    if(!text || !user) return;
-    if(!chatId) await startNormalChat();
-
-    addMsg(text, 'user');
-    input.value = '';
-    await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
-
-    const age = parseInt(user.user_metadata.age) || 12;
-    let style = "";
-
-    if(age === 10) {
-        style = "Explique comme à un élève de CM2. Utilise des mots simples et des images concrètes.";
-    } else if(age >= 11 && age <= 14) {
-        const classes = {11:"6ème", 12:"5ème", 13:"4ème", 14:"3ème"};
-        style = `Explique comme à un élève de collège en niveau ${classes[age]}. Utilise le programme scolaire français de ce niveau.`;
-    } else {
-        style = "Explique comme à un lycéen. Utilise un vocabulaire précis, des détails techniques et des concepts approfondis.";
+    // --- AUTHENTIFICATION ---
+    function toggleSignup() {
+        isSignupMode = !isSignupMode;
+        document.getElementById('signup-fields').style.display = isSignupMode ? 'block' : 'none';
+        document.getElementById('auth-btn').innerText = isSignupMode ? 'CRÉER MON COMPTE' : 'CONNEXION';
+        document.getElementById('toggle-text').innerText = isSignupMode ? 'Déjà un compte ? Se connecter' : "Pas de compte ? S'inscrire";
     }
 
-    let systemPrompt = isProfMode ? `Tu es un prof passionné. ${style}` : `Tu es Cogitron, une IA cool. ${style}`;
-
-    try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: systemPrompt}, {role: "user", content: text}]
-            })
-        });
-        const d = await res.json();
-        const reply = d.choices[0].message.content;
-        addMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
-        
-        const {data:mCheck} = await sb.from('messages').select('id').eq('chat_id', chatId);
-        if(mCheck && mCheck.length < 3 && !isProfMode) updateChatTitle(text);
-    } catch(e) { console.error(e); }
-}// Affiche l'âge et la classe dans la barre latérale
-function setupApp() { 
-    document.getElementById('auth').style.display = 'none'; 
-    const age = parseInt(user.user_metadata.age) || 12;
-    let classe = "";
-    if (age === 10) classe = "CM2";
-    else if (age === 11) classe = "6ème";
-    else if (age === 12) classe = "5ème";
-    else if (age === 13) classe = "4ème";
-    else if (age === 14) classe = "3ème";
-    else if (age === 15) classe = "2nde";
-    else if (age === 16) classe = "1ère";
-    
-    document.getElementById('user-info').innerText = `Profil : ${age} ans (${classe})`;
-    refreshSidebar(); 
-}
-
-// L'IA adapte son langage à ta classe
-async function askAI() {
-    const input = document.getElementById('user-input'), text = input.value.trim();
-    if(!text || !user) return;
-    if(!chatId) await startNormalChat();
-
-    addMsg(text, 'user');
-    input.value = '';
-    await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
-
-    const age = parseInt(user.user_metadata.age) || 12;
-    let style = "";
-
-    if(age === 10) {
-        style = "Explique comme à un élève de CM2. Utilise des mots simples et des images concrètes.";
-    } else if(age >= 11 && age <= 14) {
-        const classes = {11:"6ème", 12:"5ème", 13:"4ème", 14:"3ème"};
-        style = `Explique comme à un élève de collège en niveau ${classes[age]}. Utilise le programme scolaire français de ce niveau.`;
-    } else {
-        style = "Explique comme à un lycéen. Utilise un vocabulaire précis, des détails techniques et des concepts approfondis.";
+    async function handleAuth() {
+        const email = document.getElementById('email').value, p = document.getElementById('pass').value;
+        if(isSignupMode) {
+            const age = document.getElementById('user-age').value;
+            const nick = document.getElementById('nick').value;
+            const {error} = await sb.auth.signUp({email, password:p, options:{data:{nickname:nick, age:age}}});
+            if(error) alert(error.message); else alert("Vérifie tes emails pour valider !");
+        } else {
+            const {data, error} = await sb.auth.signInWithPassword({email, password:p});
+            if(error) alert(error.message); else { user = data.user; setupApp(); }
+        }
     }
 
-    let systemPrompt = isProfMode ? `Tu es un prof passionné. ${style}` : `Tu es Cogitron, une IA cool. ${style}`;
+    function setupApp() { 
+        document.getElementById('auth').style.display = 'none'; 
+        const age = parseInt(user.user_metadata.age) || 12;
+        const classes = {10:"CM2", 11:"6ème", 12:"5ème", 13:"4ème", 14:"3ème", 15:"2nde", 16:"1ère"};
+        document.getElementById('user-info').innerText = `Profil : ${age} ans (${classes[age] || 'Scolaire'})`;
+        refreshSidebar(); 
+    }
 
-    try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // --- LOGIQUE CHAT ---
+    async function startNormalChat() { isProfMode = false; document.getElementById('prof-btn').classList.remove('active'); await createChatRecord("Nouveau chat"); }
+    async function activateProfMode() { isProfMode = true; document.getElementById('prof-btn').classList.add('active'); await createChatRecord("🎓 Révisions"); addMsg("Mode Prof activé ! On révise quoi aujourd'hui ?", "bot"); }
+
+    async function createChatRecord(title) {
+        if(!user) return;
+        const {data} = await sb.from('chats').insert([{user_id: user.id, title: title}]).select();
+        if(data) { chatId = data[0].id; document.getElementById('chat-window').innerHTML = ''; refreshSidebar(); }
+    }
+
+    async function refreshSidebar() {
+        if(!user) return;
+        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
+        const container = document.getElementById('history');
+        container.innerHTML = '';
+        if(data) data.forEach(c => {
+            const d = document.createElement('div');
+            d.className = `chat-link ${c.id === chatId ? 'active' : ''}`;
+            d.innerHTML = `<span onclick="loadChat('${c.id}')">${c.title}</span><b onclick="deleteChat('${c.id}')">🗑️</b>`;
+            container.appendChild(d);
+        });
+    }
+
+    async function loadChat(id) {
+        chatId = id;
+        const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
+        document.getElementById('chat-window').innerHTML = '';
+        if(data) data.forEach(m => addMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
+        const {data:chat} = await sb.from('chats').select('title').eq('id', id).single();
+        isProfMode = chat?.title.includes("🎓");
+        isProfMode ? document.getElementById('prof-btn').classList.add('active') : document.getElementById('prof-btn').classList.remove('active');
+        refreshSidebar();
+        if(window.innerWidth < 1024) document.getElementById('sidebar').classList.remove('open');
+    }
+
+    // --- IA ET ADAPTATION AGE ---
+    async function askAI() {
+        const input = document.getElementById('user-input'), text = input.value.trim();
+        if(!text || !user) return;
+        if(!chatId) await startNormalChat();
+
+        addMsg(text, 'user');
+        input.value = '';
+        await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
+
+        // Définition du style selon l'âge
+        const age = parseInt(user.user_metadata.age) || 12;
+        let stylePrompt = "";
+        if(age === 10) stylePrompt = "Réponds comme à un enfant de CM2, très simple, avec des exemples imagés.";
+        else if(age >= 11 && age <= 14) {
+            const niveau = {11:"6ème", 12:"5ème", 13:"4ème", 14:"3ème"}[age];
+            stylePrompt = `Réponds comme à un collégien de niveau ${niveau}. Sois clair et pédagogique.`;
+        } else {
+            stylePrompt = "Réponds comme à un lycéen. Utilise des termes précis, des explications poussées et structurées.";
+        }
+
+        let systemPrompt = isProfMode ? `Tu es un prof génial. ${stylePrompt}` : `Tu es Cogitron, une IA sympa. ${stylePrompt}`;
+
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [{role: "system", content: systemPrompt}, {role: "user", content: text}]
+                })
+            });
+            const d = await res.json();
+            const reply = d.choices[0].message.content;
+            addMsg(reply, 'bot');
+            await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
+
+            const {data:mCheck} = await sb.from('messages').select('id').eq('chat_id', chatId);
+            if(mCheck && mCheck.length < 3 && !isProfMode) updateChatTitle(text);
+        } catch(e) { console.error(e); }
+    }
+
+    async function updateChatTitle(text) {
+        const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
             method: "POST",
-            headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: systemPrompt}, {role: "user", content: text}]
-            })
+            headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
+            body: JSON.stringify({model: "mistral-tiny", messages: [{role:"user", content:"Titre 2 mots maximum pour : "+text}]})
         });
         const d = await res.json();
-        const reply = d.choices[0].message.content;
-        addMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
-        
-        const {data:mCheck} = await sb.from('messages').select('id').eq('chat_id', chatId);
-        if(mCheck && mCheck.length < 3 && !isProfMode) updateChatTitle(text);
-    } catch(e) { console.error(e); }
-}
+        let newTitle = d.choices[0].message.content.replace(/[".]/g, '').split(' ').slice(0, 2).join(' ');
+        await sb.from('chats').update({title: newTitle}).eq('id', chatId);
+        refreshSidebar();
+    }
+
+    // --- UI & VOCAL ---
+    function addMsg(t, type) {
+        const win = document.getElementById('chat-window');
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.innerHTML = marked.parse(t);
+        if(type === 'bot') {
+            const b = document.createElement('button');
+            b.innerHTML = "🔊";
+            b.style = "background:none; border:none; color:var(--blue); cursor:pointer; margin-top:5px; display:block; font-size:1.2rem;";
+            b.onclick = () => speak(t);
+            d.appendChild(b);
+        }
+        win.appendChild(d);
+        win.scrollTop = win.scrollHeight;
+    }
+
+    function speak(t) {
+        window.speechSynthesis.cancel();
+        let clean = t.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '').replace(/[#*`_]/g, '');
+        const u = new SpeechSynthesisUtterance(clean); u.lang = 'fr-FR';
+        window.speechSynthesis.speak(u);
+    }
+
+    async function deleteChat(id) {
+        if(confirm("Supprimer ce chat ?")) {
+            await sb.from('chats').delete().eq('id', id);
+            if(chatId === id) { chatId = null; document.getElementById('chat-window').innerHTML = ''; }
+            refreshSidebar();
+        }
+    }
+
+    sb.auth.onAuthStateChange((e, s) => { if (s) { user = s.user; setupApp(); } });
+</script>
+</body>
+</html>
