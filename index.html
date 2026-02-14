@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Sécurisé</title>
+    <title>Cogitron Sécurisé Louis</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -11,49 +11,58 @@
         :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Flou si cookies refusés */
-        .blur-content { filter: blur(20px); pointer-events: none; user-select: none; }
-        #cookie-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; text-align: center; }
+        /* BLOQUEUR DE COOKIES - PRIORITÉ MAXIMALE */
+        #cookie-wall { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .cookie-card { 
+            background: #161925; padding: 40px; border-radius: 25px; 
+            border: 2px solid var(--blue); text-align: center; width: 350px; 
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
+        }
 
-        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; z-index: 1000; }
+        /* CONTENU FLOU TANT QUE REFUSÉ */
+        #main-app { filter: blur(20px); pointer-events: none; width: 100%; display: flex; }
+        #main-app.active { filter: none; pointer-events: auto; }
+
+        /* DESIGN INTERFACE */
+        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
+        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
         .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 5px; }
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
         
-        #user-info { font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 15px; }
-        .history { flex-grow: 1; overflow-y: auto; }
-        .chat-link { padding: 10px; margin-bottom: 5px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; font-size: 0.9rem; }
-        
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 40px 10%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 12px 18px; border-radius: 15px; line-height: 1.4; }
+        .msg { max-width: 80%; padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.4; }
         .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
         .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
 
-        .input-box { padding: 20px; background: var(--bg); }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
+        .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; max-width: 800px; margin: 0 auto; border: 1px solid #333; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; font-size: 1rem; }
         
-        /* Auth */
-        #auth { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; }
-        .card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--blue); width: 300px; text-align: center; }
-        .card input, .card select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; border-radius: 8px; color: white; box-sizing: border-box; }
-        button { cursor: pointer; font-weight: bold; border: none; }
+        /* AUTH */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
+        .auth-card input, select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box;}
+        
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
-<body class="blur-content">
+<body>
 
-<div id="cookie-overlay">
-    <div class="card">
-        <h2>🍪 Cookies</h2>
-        <p style="font-size: 0.8rem; color: #ccc;">Cogitron a besoin de cookies pour fonctionner. En refusant, l'accès sera bloqué.</p>
-        <button onclick="acceptCookies(true)" style="width:100%; padding:12px; background:var(--blue); border-radius:8px;">ACCEPTER</button>
-        <button onclick="acceptCookies(false)" style="width:100%; padding:10px; background:none; color:white; margin-top:5px;">REFUSER</button>
+    <div id="cookie-wall">
+        <div class="cookie-card">
+            <h2 style="color:var(--blue)">🍪 Sécurité Cookies</h2>
+            <p>Louis, pour accéder à Cogitron et sauvegarder tes chats, tu dois accepter les cookies locaux.</p>
+            <button onclick="handleCookies(true)" style="width:100%; padding:15px; background:var(--blue); color:black; font-size:1.1rem;">J'ACCEPTE</button>
+            <button onclick="handleCookies(false)" style="width:100%; padding:10px; background:none; color:white; margin-top:10px;">JE REFUSE (BLOQUER)</button>
+        </div>
     </div>
-</div>
 
-<div id="auth">
-    <div class="card">
-        <h1 class="logo">COGITRON</h1>
-        <div id="auth-fields">
+    <div id="auth-screen" style="display: none;">
+        <div class="auth-card">
+            <h1 class="logo">COGITRON</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Mot de passe">
             <div id="signup-extra" style="display:none;">
@@ -68,166 +77,165 @@
                     <option value="16">16 ans (1ère)</option>
                 </select>
             </div>
-        </div>
-        <button onclick="handleAuth()" id="main-auth-btn" style="width:100%; padding:12px; background:var(--blue); border-radius:8px; margin-top:10px;">CONNEXION</button>
-        <p onclick="toggleSignup()" id="toggle-text" style="font-size:0.7rem; color:#888; margin-top:15px; cursor:pointer;">Pas de compte ? S'inscrire</p>
-    </div>
-</div>
-
-<div class="sidebar">
-    <h2 class="logo">COGITRON</h2>
-    <div id="user-info">Profil : ...</div>
-    <button onclick="startNewChat()" style="width:100%; padding:10px; background:var(--pink); border-radius:8px; color:white; margin-bottom:10px;">+ Nouveau Chat</button>
-    <div class="history" id="history"></div>
-    <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; font-size:0.8rem; margin-top:10px;">Quitter</button>
-</div>
-
-<div class="main">
-    <div id="chat-window"></div>
-    <div class="input-box">
-        <div class="input-wrap">
-            <input type="text" id="user-input" placeholder="Écris ici..." onkeypress="if(event.key==='Enter') askAI()">
-            <button onclick="askAI()" style="background:var(--blue); padding:5px 15px; border-radius:8px; color:black;">OK</button>
+            <button onclick="submitAuth()" id="btn-auth-text" style="width:100%; padding:14px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
+            <p onclick="toggleMode()" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">Changer Connexion / Inscription</p>
         </div>
     </div>
-</div>
+
+    <div id="main-app">
+        <div class="sidebar">
+            <h2 class="logo">COGITRON</h2>
+            <div id="user-display" style="text-align:center; font-size:0.8rem; color:var(--blue); margin-bottom:15px;"></div>
+            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--pink); color:white; margin-bottom:20px;">+ NOUVEAU CHAT</button>
+            <div id="chat-list" style="flex-grow:1; overflow-y:auto;"></div>
+            <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; margin-top:10px;">DÉCONNEXION</button>
+        </div>
+        <div class="main">
+            <div id="chat-window"></div>
+            <div class="input-box">
+                <div class="input-wrap">
+                    <input type="text" id="user-input" placeholder="Parle à Cogitron..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()" style="background:var(--blue); padding:10px 20px; color:black;">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script>
     const GROQ_KEY = "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";
-    const MISTRAL_KEY = "qa0N1MUpsE6kO0WkQQESX0DpAZ2lg6b0";
     const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     
     const sb = supabase.createClient(SB_URL, SB_KEY);
-    let user = null, chatId = null, isSignup = false;
+    let currentUser = null, activeChatId = null, isSignup = false;
 
-    // --- COOKIES ---
-    function acceptCookies(choice) {
-        if(choice) {
-            localStorage.setItem('cogitron_cookies', 'true');
-            document.getElementById('cookie-overlay').style.display = 'none';
-            document.body.classList.remove('blur-content');
+    // --- LOGIQUE COOKIES ---
+    function handleCookies(accepted) {
+        if(accepted) {
+            localStorage.setItem('cogitron_ok', 'true');
+            document.getElementById('cookie-wall').style.display = 'none';
+            document.getElementById('main-app').classList.add('active');
+            document.getElementById('auth-screen').style.display = 'flex';
         } else {
-            alert("Accès impossible sans cookies.");
+            alert("Accès refusé. L'application restera bloquée.");
         }
     }
-    if(localStorage.getItem('cogitron_cookies') === 'true') acceptCookies(true);
 
-    // --- AUTH ---
-    function toggleSignup() {
-        isSignup = !isSignup;
-        document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';
-        document.getElementById('main-auth-btn').innerText = isSignup ? 'S\'INSCRIRE' : 'CONNEXION';
+    // Vérification auto au chargement
+    if(localStorage.getItem('cogitron_ok') === 'true') {
+        handleCookies(true);
     }
 
-    async function handleAuth() {
+    // --- LOGIQUE AUTH ---
+    function toggleMode() {
+        isSignup = !isSignup;
+        document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('btn-auth-text').innerText = isSignup ? 'CRÉER MON COMPTE' : 'CONNEXION';
+    }
+
+    async function submitAuth() {
         const email = document.getElementById('email').value, pass = document.getElementById('pass').value;
         if(isSignup) {
             const age = document.getElementById('user-age').value, nick = document.getElementById('nick').value;
             const {error} = await sb.auth.signUp({email, password:pass, options:{data:{nickname:nick, age:age}}});
-            if(error) alert(error.message); else alert("Vérifie tes mails !");
+            if(error) alert(error.message); else alert("Vérifie tes emails !");
         } else {
             const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
-            if(error) alert(error.message); else { user = data.user; setupApp(); }
+            if(error) alert(error.message);
         }
     }
 
-    function setupApp() {
-        document.getElementById('auth').style.display = 'none';
-        const age = user.user_metadata.age || 12;
-        const classes = {10:"CM2", 11:"6ème", 12:"5ème", 13:"4ème", 14:"3ème", 15:"2nde", 16:"1ère"};
-        document.getElementById('user-info').innerText = `${user.user_metadata.nickname || 'Ami'} - ${age} ans (${classes[age]})`;
-        refreshSidebar();
-    }
-
-    // --- MODERATION SENTINELLE ---
-    async function checkModeration(text) {
+    // --- MODÉRATION SENTINELLE ---
+    async function analyzeText(text) {
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.1-8b-instant",
-                messages: [{role: "system", content: "Analyse. Si vulgaire, réponds seulement 'BAN_X' où X est le temps en minutes. Sinon réponds 'OK'."}, {role: "user", content: text}]
+                messages: [{role: "system", content: "Si le texte est vulgaire, réponds BAN. Sinon réponds OK."}, {role: "user", content: text}]
             })
         });
         const d = await res.json();
         return d.choices[0].message.content.trim();
     }
 
-    // --- CHAT ---
-    async function startNewChat() {
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title: 'Discussion'}]).select();
-        chatId = data[0].id;
-        document.getElementById('chat-window').innerHTML = '';
-        refreshSidebar();
-    }
-
-    async function askAI() {
+    // --- CHAT ET IA ---
+    async function sendMessage() {
         const input = document.getElementById('user-input'), text = input.value.trim();
-        if(!text || !user) return;
+        if(!text || !currentUser) return;
 
-        // 1. Sentinelle
-        const mod = await checkModeration(text);
-        if(mod.startsWith("BAN")) {
-            const time = mod.split('_')[1] || "10";
-            alert(`SENTINELLE : Propos vulgaires détectés. Suspension de ${time} min.`);
+        // 1. Modération
+        const status = await analyzeText(text);
+        if(status.includes("BAN")) {
+            alert("🚫 SENTINELLE : Propos interdits ! Message bloqué.");
             input.value = ''; return;
         }
 
-        if(!chatId) await startNewChat();
-        addMsg(text, 'user');
-        input.value = '';
-        await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'user', content: text}]);
+        if(!activeChatId) await createNewChat();
 
-        // 2. IA Principale
-        const age = user.user_metadata.age || 12;
+        appendMsg(text, 'user');
+        input.value = '';
+        await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'user', content: text}]);
+
+        // 2. Réponse IA selon l'âge
+        const age = currentUser.user_metadata.age || 12;
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: `IA cool pour enfant de ${age} ans.`}, {role: "user", content: text}]
+                messages: [{role: "system", content: `IA pour un enfant de ${age} ans.`}, {role: "user", content: text}]
             })
         });
         const d = await res.json();
         const reply = d.choices[0].message.content;
-        addMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: chatId, user_id: user.id, role:'bot', content: reply}]);
+        appendMsg(reply, 'bot');
+        await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'bot', content: reply}]);
     }
 
-    function addMsg(t, type) {
-        const d = document.createElement('div');
-        d.className = `msg ${type}`;
-        d.innerHTML = marked.parse(t);
-        document.getElementById('chat-window').appendChild(d);
+    function appendMsg(t, type) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${type}`;
+        msgDiv.innerHTML = marked.parse(t);
+        document.getElementById('chat-window').appendChild(msgDiv);
         document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
     }
 
-    async function refreshSidebar() {
-        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
-        const hist = document.getElementById('history'); hist.innerHTML = '';
+    async function createNewChat() {
+        const {data} = await sb.from('chats').insert([{user_id: currentUser.id, title: 'Discussion'}]).select();
+        activeChatId = data[0].id;
+        document.getElementById('chat-window').innerHTML = '';
+        loadHistory();
+    }
+
+    async function loadHistory() {
+        const {data} = await sb.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
+        const list = document.getElementById('chat-list'); list.innerHTML = '';
         data?.forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'chat-link';
-            div.innerHTML = `<span onclick="loadChat('${c.id}')">${c.title}</span><b onclick="deleteChat('${c.id}')">🗑️</b>`;
-            hist.appendChild(div);
+            const item = document.createElement('div');
+            item.style = "padding:10px; background:#1c1e2d; margin-bottom:5px; border-radius:8px; cursor:pointer; font-size:0.8rem;";
+            item.innerText = c.title;
+            item.onclick = () => loadChat(c.id);
+            list.appendChild(item);
         });
     }
 
     async function loadChat(id) {
-        chatId = id;
+        activeChatId = id;
         const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
         document.getElementById('chat-window').innerHTML = '';
-        data?.forEach(m => addMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
+        data?.forEach(m => appendMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
     }
 
-    async function deleteChat(id) {
-        await sb.from('chats').delete().eq('id', id);
-        if(chatId === id) { chatId = null; document.getElementById('chat-window').innerHTML = ''; }
-        refreshSidebar();
-    }
-
-    sb.auth.onAuthStateChange((e, s) => { if(s) { user = s.user; setupApp(); } });
+    sb.auth.onAuthStateChange((event, session) => {
+        if(session) {
+            currentUser = session.user;
+            document.getElementById('auth-screen').style.display = 'none';
+            const age = currentUser.user_metadata.age || 12;
+            document.getElementById('user-display').innerText = `Connecté : ${age} ans`;
+            loadHistory();
+        }
+    });
 </script>
 </body>
 </html>
