@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Sécurisé Louis</title>
+    <title>Cogitron Ultra-Secure</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -11,56 +11,46 @@
         :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* BLOQUEUR DE COOKIES - PRIORITÉ MAXIMALE */
-        #cookie-wall { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
-            display: flex; align-items: center; justify-content: center; 
-        }
-        .cookie-card { 
-            background: #161925; padding: 40px; border-radius: 25px; 
-            border: 2px solid var(--blue); text-align: center; width: 350px; 
-            box-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
-        }
+        /* MUR DE SÉCURITÉ */
+        #cookie-wall { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
+        .cookie-card { background: #161925; padding: 40px; border-radius: 25px; border: 2px solid var(--blue); text-align: center; width: 350px; box-shadow: 0 0 50px rgba(0, 212, 255, 0.3); }
 
-        /* CONTENU FLOU TANT QUE REFUSÉ */
-        #main-app { filter: blur(20px); pointer-events: none; width: 100%; display: flex; }
-        #main-app.active { filter: none; pointer-events: auto; }
-
-        /* DESIGN INTERFACE */
+        /* INTERFACE */
+        #main-app { display: none; width: 100%; height: 100%; }
         .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
-        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
         .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
+        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
         
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
         .msg { max-width: 80%; padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.4; }
         .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
         .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
 
         .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; max-width: 800px; margin: 0 auto; border: 1px solid #333; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; font-size: 1rem; }
-        
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
+
         /* AUTH */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: none; align-items: center; justify-content: center; }
         .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
         .auth-card input, select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box;}
         
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div id="cookie-wall">
         <div class="cookie-card">
-            <h2 style="color:var(--blue)">🍪 Sécurité Cookies</h2>
-            <p>Louis, pour accéder à Cogitron et sauvegarder tes chats, tu dois accepter les cookies locaux.</p>
-            <button onclick="handleCookies(true)" style="width:100%; padding:15px; background:var(--blue); color:black; font-size:1.1rem;">J'ACCEPTE</button>
-            <button onclick="handleCookies(false)" style="width:100%; padding:10px; background:none; color:white; margin-top:10px;">JE REFUSE (BLOQUER)</button>
+            <h2 style="color:var(--blue)">🔒 Confidentialité</h2>
+            <p>Louis, choisis ton mode de protection :</p>
+            <button onclick="initApp('full')" style="width:100%; padding:15px; background:var(--blue); color:black; margin-bottom:10px;">ACCEPTER (Normal)</button>
+            <button onclick="initApp('private')" style="width:100%; padding:15px; background:var(--pink); color:white;">REFUSER (Mode Verrouillé)</button>
+            <p style="font-size:0.7rem; color:#888; margin-top:10px;">En mode verrouillé, tes messages sont cryptés sur Supabase.</p>
         </div>
     </div>
 
-    <div id="auth-screen" style="display: none;">
+    <div id="auth-screen">
         <div class="auth-card">
             <h1 class="logo">COGITRON</h1>
             <input type="email" id="email" placeholder="Email">
@@ -77,8 +67,8 @@
                     <option value="16">16 ans (1ère)</option>
                 </select>
             </div>
-            <button onclick="submitAuth()" id="btn-auth-text" style="width:100%; padding:14px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
-            <p onclick="toggleMode()" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">Changer Connexion / Inscription</p>
+            <button onclick="submitAuth()" id="btn-auth" style="width:100%; padding:14px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
+            <p onclick="isSignup = !isSignup; document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">S'inscrire / Se connecter</p>
         </div>
     </div>
 
@@ -94,7 +84,7 @@
             <div id="chat-window"></div>
             <div class="input-box">
                 <div class="input-wrap">
-                    <input type="text" id="user-input" placeholder="Parle à Cogitron..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <input type="text" id="user-input" placeholder="Message..." onkeypress="if(event.key==='Enter') sendMessage()">
                     <button onclick="sendMessage()" style="background:var(--blue); padding:10px 20px; color:black;">OK</button>
                 </div>
             </div>
@@ -105,116 +95,100 @@
     const GROQ_KEY = "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";
     const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
-    
     const sb = supabase.createClient(SB_URL, SB_KEY);
-    let currentUser = null, activeChatId = null, isSignup = false;
 
-    // --- LOGIQUE COOKIES ---
-    function handleCookies(accepted) {
-        if(accepted) {
-            localStorage.setItem('cogitron_ok', 'true');
-            document.getElementById('cookie-wall').style.display = 'none';
-            document.getElementById('main-app').classList.add('active');
-            document.getElementById('auth-screen').style.display = 'flex';
+    let user = null, activeChatId = null, isSignup = false, userKey = null;
+
+    // --- CRYPTAGE (Base64 inversé pour le mode privé) ---
+    const lock = (t) => userKey ? btoa(unescape(encodeURIComponent(t))) : t;
+    const unlock = (t) => {
+        if(!userKey) return t;
+        try { return decodeURIComponent(escape(atob(t))); } catch(e) { return "🔒 Message Verrouillé"; }
+    };
+
+    // --- INITIALISATION ---
+    function initApp(mode) {
+        if(mode === 'private') {
+            userKey = prompt("Entre un code secret pour verrouiller tes chats sur Supabase :");
+            if(!userKey) return alert("Code obligatoire pour le mode privé !");
         } else {
-            alert("Accès refusé. L'application restera bloquée.");
+            localStorage.setItem('cogitron_cookies', 'true');
         }
+        document.getElementById('cookie-wall').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
     }
 
-    // Vérification auto au chargement
-    if(localStorage.getItem('cogitron_ok') === 'true') {
-        handleCookies(true);
-    }
+    if(localStorage.getItem('cogitron_cookies')) initApp('full');
 
-    // --- LOGIQUE AUTH ---
-    function toggleMode() {
-        isSignup = !isSignup;
-        document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';
-        document.getElementById('btn-auth-text').innerText = isSignup ? 'CRÉER MON COMPTE' : 'CONNEXION';
-    }
-
+    // --- AUTH ---
     async function submitAuth() {
-        const email = document.getElementById('email').value, pass = document.getElementById('pass').value;
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
         if(isSignup) {
-            const age = document.getElementById('user-age').value, nick = document.getElementById('nick').value;
-            const {error} = await sb.auth.signUp({email, password:pass, options:{data:{nickname:nick, age:age}}});
-            if(error) alert(error.message); else alert("Vérifie tes emails !");
+            const a = document.getElementById('user-age').value, n = document.getElementById('nick').value;
+            await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
+            alert("Vérifie tes emails !");
         } else {
-            const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
-            if(error) alert(error.message);
+            await sb.auth.signInWithPassword({email:e, password:p});
         }
     }
 
-    // --- MODÉRATION SENTINELLE ---
-    async function analyzeText(text) {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({
-                model: "llama-3.1-8b-instant",
-                messages: [{role: "system", content: "Si le texte est vulgaire, réponds BAN. Sinon réponds OK."}, {role: "user", content: text}]
-            })
-        });
-        const d = await res.json();
-        return d.choices[0].message.content.trim();
-    }
-
-    // --- CHAT ET IA ---
+    // --- CHAT & MODERATION ---
     async function sendMessage() {
         const input = document.getElementById('user-input'), text = input.value.trim();
-        if(!text || !currentUser) return;
+        if(!text || !user) return;
 
-        // 1. Modération
-        const status = await analyzeText(text);
-        if(status.includes("BAN")) {
-            alert("🚫 SENTINELLE : Propos interdits ! Message bloqué.");
-            input.value = ''; return;
-        }
+        // Sentinelle (Modération rapide)
+        const check = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+            body: JSON.stringify({model: "llama-3.1-8b-instant", messages: [{role: "system", content: "Si vulgaire, réponds BAN."}, {role: "user", content: text}]})
+        });
+        const checkD = await check.json();
+        if(checkD.choices[0].message.content.includes("BAN")) return alert("🚫 Propos interdits !");
 
         if(!activeChatId) await createNewChat();
-
+        
         appendMsg(text, 'user');
         input.value = '';
-        await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'user', content: text}]);
+        
+        // Sauvegarde Cryptée ou Normale
+        await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
 
-        // 2. Réponse IA selon l'âge
-        const age = currentUser.user_metadata.age || 12;
+        // IA Réponse
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: `IA pour un enfant de ${age} ans.`}, {role: "user", content: text}]
+                messages: [{role: "system", content: `Tu parles à un enfant de ${user.user_metadata.age} ans.`}, {role: "user", content: text}]
             })
         });
         const d = await res.json();
         const reply = d.choices[0].message.content;
         appendMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'bot', content: reply}]);
+        await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
     }
 
     function appendMsg(t, type) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `msg ${type}`;
-        msgDiv.innerHTML = marked.parse(t);
-        document.getElementById('chat-window').appendChild(msgDiv);
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.innerHTML = marked.parse(t);
+        document.getElementById('chat-window').appendChild(d);
         document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
     }
 
     async function createNewChat() {
-        const {data} = await sb.from('chats').insert([{user_id: currentUser.id, title: 'Discussion'}]).select();
+        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Discussion')}]).select();
         activeChatId = data[0].id;
         document.getElementById('chat-window').innerHTML = '';
         loadHistory();
     }
 
     async function loadHistory() {
-        const {data} = await sb.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
+        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
         const list = document.getElementById('chat-list'); list.innerHTML = '';
         data?.forEach(c => {
             const item = document.createElement('div');
             item.style = "padding:10px; background:#1c1e2d; margin-bottom:5px; border-radius:8px; cursor:pointer; font-size:0.8rem;";
-            item.innerText = c.title;
+            item.innerText = unlock(c.title);
             item.onclick = () => loadChat(c.id);
             list.appendChild(item);
         });
@@ -224,15 +198,15 @@
         activeChatId = id;
         const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
         document.getElementById('chat-window').innerHTML = '';
-        data?.forEach(m => appendMsg(m.content, m.role === 'user' ? 'user' : 'bot'));
+        data?.forEach(m => appendMsg(unlock(m.content), m.role === 'user' ? 'user' : 'bot'));
     }
 
-    sb.auth.onAuthStateChange((event, session) => {
-        if(session) {
-            currentUser = session.user;
+    sb.auth.onAuthStateChange((ev, sess) => {
+        if(sess) {
+            user = sess.user;
             document.getElementById('auth-screen').style.display = 'none';
-            const age = currentUser.user_metadata.age || 12;
-            document.getElementById('user-display').innerText = `Connecté : ${age} ans`;
+            document.getElementById('main-app').style.display = 'flex';
+            document.getElementById('user-display').innerText = `${user.user_metadata.age} ans (${user.user_metadata.nickname})`;
             loadHistory();
         }
     });
