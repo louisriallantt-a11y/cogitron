@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron Ultra-Secure</title>
+    <title>Cogitron Ultra-Secure Louis</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -28,25 +28,26 @@
 
         .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
         .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; font-size: 1rem; }
 
         /* AUTH */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: none; align-items: center; justify-content: center; }
         .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
         .auth-card input, select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box;}
         
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div id="cookie-wall">
         <div class="cookie-card">
-            <h2 style="color:var(--blue)">🔒 Confidentialité</h2>
-            <p>Louis, choisis ton mode de protection :</p>
-            <button onclick="initApp('full')" style="width:100%; padding:15px; background:var(--blue); color:black; margin-bottom:10px;">ACCEPTER (Normal)</button>
-            <button onclick="initApp('private')" style="width:100%; padding:15px; background:var(--pink); color:white;">REFUSER (Mode Verrouillé)</button>
-            <p style="font-size:0.7rem; color:#888; margin-top:10px;">En mode verrouillé, tes messages sont cryptés sur Supabase.</p>
+            <h2 style="color:var(--blue)">🔒 Louis - Sécurité</h2>
+            <p>Choisis comment Cogitron gère tes données :</p>
+            <button onclick="initApp('full')" style="width:100%; padding:15px; background:var(--blue); color:black; margin-bottom:10px;">MODE NORMAL (Cookies)</button>
+            <button onclick="initApp('private')" style="width:100%; padding:15px; background:var(--pink); color:white;">MODE PRIVÉ (Bloquer lecture Supabase)</button>
+            <p style="font-size:0.7rem; color:#888; margin-top:10px;">En mode privé, tes messages sont cryptés et illisibles pour les autres.</p>
         </div>
     </div>
 
@@ -67,8 +68,8 @@
                     <option value="16">16 ans (1ère)</option>
                 </select>
             </div>
-            <button onclick="submitAuth()" id="btn-auth" style="width:100%; padding:14px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
-            <p onclick="isSignup = !isSignup; document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">S'inscrire / Se connecter</p>
+            <button onclick="submitAuth()" id="btn-auth" style="width:100%; padding:14px; background:var(--pink); color:white; margin-top:10px;">C'EST PARTI !</button>
+            <p onclick="isSignup = !isSignup; document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';" style="color:#888; font-size:0.8rem; cursor:pointer; margin-top:15px;">Changer : Connexion / Inscription</p>
         </div>
     </div>
 
@@ -78,28 +79,29 @@
             <div id="user-display" style="text-align:center; font-size:0.8rem; color:var(--blue); margin-bottom:15px;"></div>
             <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--pink); color:white; margin-bottom:20px;">+ NOUVEAU CHAT</button>
             <div id="chat-list" style="flex-grow:1; overflow-y:auto;"></div>
-            <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; margin-top:10px;">DÉCONNEXION</button>
+            <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; margin-top:10px; font-size:0.8rem;">Quitter</button>
         </div>
         <div class="main">
             <div id="chat-window"></div>
             <div class="input-box">
                 <div class="input-wrap">
-                    <input type="text" id="user-input" placeholder="Message..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()" style="background:var(--blue); padding:10px 20px; color:black;">OK</button>
+                    <input type="text" id="user-input" placeholder="Pose ta question..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()" style="background:var(--blue); padding:10px 20px; color:black; border-radius:8px;">OK</button>
                 </div>
             </div>
         </div>
     </div>
 
 <script>
+    // --- CONFIG ---
     const GROQ_KEY = "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";
     const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = null, activeChatId = null, isSignup = false, userKey = null;
+    let user = null, activeChatId = null, isSignup = false, userKey = null, banUntil = null;
 
-    // --- CRYPTAGE (Base64 inversé pour le mode privé) ---
+    // --- CRYPTAGE (Pour le mode privé) ---
     const lock = (t) => userKey ? btoa(unescape(encodeURIComponent(t))) : t;
     const unlock = (t) => {
         if(!userKey) return t;
@@ -109,62 +111,89 @@
     // --- INITIALISATION ---
     function initApp(mode) {
         if(mode === 'private') {
-            userKey = prompt("Entre un code secret pour verrouiller tes chats sur Supabase :");
+            userKey = prompt("CODE SECRET : Entre un code pour verrouiller tes messages sur Supabase (ne l'oublie pas) :");
             if(!userKey) return alert("Code obligatoire pour le mode privé !");
         } else {
-            localStorage.setItem('cogitron_cookies', 'true');
+            localStorage.setItem('cogitron_cookies_louis', 'true');
         }
         document.getElementById('cookie-wall').style.display = 'none';
         document.getElementById('auth-screen').style.display = 'flex';
     }
+    if(localStorage.getItem('cogitron_cookies_louis')) initApp('full');
 
-    if(localStorage.getItem('cogitron_cookies')) initApp('full');
-
-    // --- AUTH ---
+    // --- CONNEXION / INSCRIPTION ---
     async function submitAuth() {
         const e = document.getElementById('email').value, p = document.getElementById('pass').value;
         if(isSignup) {
             const a = document.getElementById('user-age').value, n = document.getElementById('nick').value;
-            await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
-            alert("Vérifie tes emails !");
+            const {error} = await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
+            if(error) alert(error.message); else alert("Vérifie tes emails !");
         } else {
-            await sb.auth.signInWithPassword({email:e, password:p});
+            const {error} = await sb.auth.signInWithPassword({email:e, password:p});
+            if(error) alert(error.message);
         }
     }
 
-    // --- CHAT & MODERATION ---
+    // --- LA SENTINELLE (Modération) ---
+    async function checkModeration(text) {
+        if(text.length < 3) return "OK"; // Laisse passer les "Salut", "Ok", etc.
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+                body: JSON.stringify({
+                    model: "llama-3.1-8b-instant", 
+                    messages: [{role: "system", content: "Réponds BAN_5 si le texte est très vulgaire ou haineux. Sinon réponds OK. Sois cool avec les mots de politesse."}, {role: "user", content: text}]
+                })
+            });
+            const d = await res.json();
+            return d.choices[0].message.content.trim();
+        } catch(e) { return "OK"; }
+    }
+
+    // --- ENVOI DE MESSAGE ---
     async function sendMessage() {
+        // Vérification du BAN
+        if (banUntil && new Date() < banUntil) {
+            const reste = Math.ceil((banUntil - new Date()) / 1000 / 60);
+            alert(`🚫 Stop ! Encore ${reste} minute(s) de punition.`);
+            return;
+        }
+
         const input = document.getElementById('user-input'), text = input.value.trim();
         if(!text || !user) return;
 
-        // Sentinelle (Modération rapide)
-        const check = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({model: "llama-3.1-8b-instant", messages: [{role: "system", content: "Si vulgaire, réponds BAN."}, {role: "user", content: text}]})
-        });
-        const checkD = await check.json();
-        if(checkD.choices[0].message.content.includes("BAN")) return alert("🚫 Propos interdits !");
+        // Appel à la Sentinelle
+        const status = await checkModeration(text);
+        if(status.startsWith("BAN")) {
+            const min = parseInt(status.split('_')[1]) || 5;
+            banUntil = new Date(new Date().getTime() + min * 60000);
+            alert(`🚫 SENTINELLE : Propos interdits ! Tu es banni pendant ${min} minutes.`);
+            input.value = ''; return;
+        }
 
         if(!activeChatId) await createNewChat();
         
         appendMsg(text, 'user');
         input.value = '';
         
-        // Sauvegarde Cryptée ou Normale
+        // Enregistrement (Crypté si mode privé)
         await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
 
-        // IA Réponse
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: `Tu parles à un enfant de ${user.user_metadata.age} ans.`}, {role: "user", content: text}]
-            })
-        });
-        const d = await res.json();
-        const reply = d.choices[0].message.content;
-        appendMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
+        // Réponse de Cogitron
+        const age = user.user_metadata.age || 12;
+        try {
+            const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [{role: "system", content: `Tu es Cogitron, une IA sympa pour un enfant de ${age} ans.`}, {role: "user", content: text}]
+                })
+            });
+            const d = await res.json();
+            const reply = d.choices[0].message.content;
+            appendMsg(reply, 'bot');
+            await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
+        } catch(e) { appendMsg("Oups, mon cerveau a grillé une seconde. Tu peux répéter ?", "bot"); }
     }
 
     function appendMsg(t, type) {
@@ -201,12 +230,14 @@
         data?.forEach(m => appendMsg(unlock(m.content), m.role === 'user' ? 'user' : 'bot'));
     }
 
+    // --- ÉCOUTEUR DE CONNEXION ---
     sb.auth.onAuthStateChange((ev, sess) => {
         if(sess) {
             user = sess.user;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
-            document.getElementById('user-display').innerText = `${user.user_metadata.age} ans (${user.user_metadata.nickname})`;
+            const age = user.user_metadata.age || 12;
+            document.getElementById('user-display').innerText = `Connecté : ${user.user_metadata.nickname} (${age} ans)`;
             loadHistory();
         }
     });
