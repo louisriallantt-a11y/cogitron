@@ -3,90 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron - Mode Prof & Sécurité</title>
+    <title>Cogitron V4 - Louis Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
-        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; }
+        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --card: #161925; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        #cookie-wall { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .card { background: #161925; padding: 40px; border-radius: 25px; border: 2px solid var(--blue); text-align: center; width: 350px; }
-
-        #main-app { display: none; width: 100%; height: 100%; }
+        /* PETITE POPUP COOKIES EN BAS */
+        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* INTERFACE */
         .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
         .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
         .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
         
         #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.4; }
+        .msg { max-width: 80%; padding: 15px; border-radius: 15px; line-height: 1.4; position: relative; }
         .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
         .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid var(--blue); }
+
+        /* BOUTONS MATIÈRES */
+        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 15px; }
+        .subject-btn { background: #1c1e2d; color: #ccc; border: 1px solid #333; padding: 6px; font-size: 0.75rem; border-radius: 5px; cursor: pointer; }
+        .subject-btn:hover { border-color: var(--blue); color: white; }
 
         .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; }
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; align-items: center; }
         input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
+        .btn-icon { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .btn-icon:hover { color: var(--blue); }
 
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: none; align-items: center; justify-content: center; }
-        .auth-card { background: #161925; padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
-        .auth-card input, select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 8px; box-sizing: border-box;}
-        
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; margin: 5px 0; }
-        .subject-btn { background: #333; color: white; padding: 8px; width: 100%; font-size: 0.9rem; }
-        .subject-btn:hover { background: var(--blue); color: black; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="cookie-wall">
-        <div class="card">
-            <h2 style="color:var(--blue)">🔒 Sécurité Louis</h2>
-            <button onclick="initApp('full')" style="width:100%; padding:15px; background:var(--blue); color:black;">MODE NORMAL</button>
-            <button onclick="initApp('private')" style="width:100%; padding:15px; background:var(--pink); color:white; margin-top:10px;">MODE PRIVÉ (Bloqué)</button>
-        </div>
+    <div id="cookie-bar" style="display: none;">
+        <span style="font-size: 0.8rem;">🍪 On utilise des cookies ?</span>
+        <button onclick="acceptCookies(true)" style="background: var(--blue); color: black; padding: 5px 15px; border-radius: 20px;">OUI</button>
+        <button onclick="acceptCookies(false)" style="background: none; color: white;">NON (PRIVÉ)</button>
     </div>
 
     <div id="auth-screen">
         <div class="auth-card">
             <h1 class="logo">COGITRON</h1>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="pass" placeholder="Mot de passe">
-            <div id="signup-extra" style="display:none;">
-                <input type="text" id="nick" placeholder="Pseudo">
-                <select id="user-age">
-                    <option value="12">12 ans (5ème)</option>
-                    <option value="13">13 ans (4ème)</option>
-                    <option value="14">14 ans (3ème)</option>
-                </select>
+            <div id="auth-inputs">
+                <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
+                <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
             </div>
-            <button onclick="submitAuth()" style="width:100%; padding:14px; background:var(--pink); color:white;">OK</button>
-            <p onclick="isSignup = !isSignup; document.getElementById('signup-extra').style.display = isSignup ? 'block' : 'none';" style="cursor:pointer; font-size:0.8rem; color:#888;">S'inscrire</p>
+            <button onclick="submitAuth()" style="width:100%; padding:12px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
+            <button onclick="startGuestMode()" style="width:100%; padding:10px; background:none; color:var(--blue); border:1px solid var(--blue); margin-top:10px;">MODE INVITÉ (Sans compte)</button>
         </div>
     </div>
 
-    <div id="main-app">
+    <div id="main-app" style="display: none; width:100%;">
         <div class="sidebar">
             <h2 class="logo">COGITRON</h2>
-            <div id="user-display" style="text-align:center; font-size:0.8rem; color:var(--blue); margin-bottom:10px;"></div>
+            <div id="user-display" style="text-align:center; font-size:0.7rem; color:var(--blue); margin-bottom:15px;"></div>
             
-            <div style="background: #1c1e2d; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
-                <p style="font-size:0.7rem; margin:0 0 5px 0; color:var(--pink)">🎓 MODE PROF</p>
-                <button class="subject-btn" onclick="startProfChat('Maths')">Calculs / Maths</button>
-                <button class="subject-btn" onclick="startProfChat('Français')">Français / Dictée</button>
-                <button class="subject-btn" onclick="startProfChat('Histoire')">Histoire / Géo</button>
+            <p style="font-size:0.6rem; color:var(--pink); margin-bottom:5px;">🎓 MODE PROF</p>
+            <div class="grid-prof">
+                <button class="subject-btn" onclick="setSubject('Maths')">📐 Maths</button>
+                <button class="subject-btn" onclick="setSubject('Français')">✍️ Français</button>
+                <button class="subject-btn" onclick="setSubject('Anglais')">🇬🇧 Anglais</button>
+                <button class="subject-btn" onclick="setSubject('Histoire')">📜 Histoire</button>
+                <button class="subject-btn" onclick="setSubject('Sciences')">🧪 Sciences</button>
+                <button class="subject-btn" onclick="setSubject('Code')">💻 Code</button>
             </div>
 
-            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--blue); color:black;">+ NOUVEAU CHAT</button>
-            <div id="chat-list" style="flex-grow:1; overflow-y:auto; margin-top:10px;"></div>
-            <button onclick="sb.auth.signOut();location.reload()" style="color:red; background:none; font-size:0.7rem;">DÉCONNEXION</button>
+            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--blue); color:black; font-size:0.8rem;">+ NOUVEAU CHAT</button>
+            <div id="chat-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
         </div>
+
         <div class="main">
             <div id="chat-window"></div>
             <div class="input-box">
                 <div class="input-wrap">
-                    <input type="text" id="user-input" placeholder="Écris ici..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()" style="background:var(--blue); padding:10px 20px; color:black;">ENVOYER</button>
+                    <button class="btn-icon" onclick="alert('Ajout de fichier bientôt disponible !')">📎</button>
+                    <input type="text" id="user-input" placeholder="Dis moi quelque chose ou tape /image..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()" style="background:var(--blue); padding:8px 15px; color:black; border-radius:8px;">OK</button>
                 </div>
             </div>
         </div>
@@ -98,94 +98,80 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = null, activeChatId = null, isSignup = false, userKey = null, banUntil = null, currentSubject = null;
+    let user = null, activeChatId = null, userKey = null, currentSubject = null, isGuest = false;
 
-    // --- SÉCURITÉ CRYPTAGE AMÉLIORÉE ---
-    const lock = (t) => userKey ? "LOCKED_" + btoa(unescape(encodeURIComponent(t))) : t;
+    // --- COOKIES ---
+    if(!localStorage.getItem('cogitron_choice')) document.getElementById('cookie-bar').style.display = 'flex';
+    function acceptCookies(ok) {
+        localStorage.setItem('cogitron_choice', ok ? 'full' : 'private');
+        if(!ok) userKey = "GUEST_KEY_LOUIS";
+        document.getElementById('cookie-bar').style.fadeOut = "slow";
+        setTimeout(() => document.getElementById('cookie-bar').style.display = 'none', 500);
+    }
+
+    // --- CRYPTAGE RÉPARÉ ---
+    const lock = (t) => (userKey && t) ? "SEC_" + btoa(unescape(encodeURIComponent(t))) : t;
     const unlock = (t) => {
         if(!t) return "";
-        if(t.startsWith("LOCKED_")) {
-            if(!userKey) return "🔒 Message Verrouillé (Mode Privé)";
-            try { return decodeURIComponent(escape(atob(t.replace("LOCKED_", "")))); } catch(e) { return "⚠️ Erreur de décodage"; }
+        if(t.startsWith("SEC_")) {
+            try { return decodeURIComponent(escape(atob(t.replace("SEC_", "")))); } 
+            catch(e) { return "🔒 [Message Crypté]"; }
         }
         return t;
     };
 
-    function initApp(mode) {
-        if(mode === 'private') {
-            userKey = prompt("CODE SECRET :");
-            if(!userKey) return alert("Obligatoire !");
-        } else {
-            localStorage.setItem('cogitron_ok', 'true');
-        }
-        document.getElementById('cookie-wall').style.display = 'none';
-        document.getElementById('auth-screen').style.display = 'flex';
-    }
-    if(localStorage.getItem('cogitron_ok')) initApp('full');
-
+    // --- AUTH & GUEST ---
     async function submitAuth() {
         const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(isSignup) {
-            const a = document.getElementById('user-age').value, n = document.getElementById('nick').value;
-            await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
-            alert("Vérifie tes mails !");
-        } else {
-            await sb.auth.signInWithPassword({email:e, password:p});
-        }
+        const {data, error} = await sb.auth.signInWithPassword({email:e, password:p});
+        if(error) alert("Erreur : " + error.message);
+    }
+    function startGuestMode() {
+        isGuest = true; user = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        document.getElementById('user-display').innerText = "Mode Invité (Pas de sauvegarde)";
     }
 
-    // --- MODERATION ---
-    async function checkBan(text) {
-        if(text.length < 3) return "OK";
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({model: "llama-3.1-8b-instant", messages: [{role: "system", content: "Réponds BAN_5 si vulgaire, sinon OK."}, {role: "user", content: text}]})
-        });
-        const d = await res.json();
-        return d.choices[0].message.content.trim();
+    // --- MATIÈRES ---
+    function setSubject(s) {
+        currentSubject = s;
+        appendMsg(`🎓 Je suis maintenant ton prof de **${s}**. Que veux-tu apprendre ?`, 'bot');
     }
 
-    // --- CHAT ---
-    async function startProfChat(subject) {
-        currentSubject = subject;
-        const title = `Prof: ${subject}`;
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock(title)}]).select();
-        activeChatId = data[0].id;
-        document.getElementById('chat-window').innerHTML = '';
-        appendMsg(`🎓 **Mode Prof Activé (${subject})** : Bonjour ${user.user_metadata.nickname}, je vais t'aider à réviser. On commence par quoi ?`, 'bot');
-        loadHistory();
-    }
-
+    // --- ENVOI & IA ---
     async function sendMessage() {
-        if (banUntil && new Date() < banUntil) return alert("Banni !");
         const input = document.getElementById('user-input'), text = input.value.trim();
-        if(!text || !user) return;
+        if(!text) return;
 
-        const status = await checkBan(text);
-        if(status.startsWith("BAN")) {
-            banUntil = new Date(new Date().getTime() + 5 * 60000);
-            return alert("🚫 Vulgaire ! Banni 5 min.");
+        // IMAGE IA (Simulation)
+        if(text.startsWith("/image")) {
+            appendMsg(text, 'user'); input.value = '';
+            appendMsg(`🎨 Génération de : *${text.replace('/image','')}*...`, 'bot');
+            setTimeout(() => {
+                const imgUrl = `https://picsum.photos/seed/${Math.random()}/400/300`;
+                appendMsg(`Voici ton image : <br><img src="${imgUrl}">`, 'bot');
+            }, 2000);
+            return;
         }
 
-        if(!activeChatId) await createNewChat();
-        appendMsg(text, 'user');
-        input.value = '';
-        
-        await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
+        if(!isGuest && !activeChatId) await createNewChat();
+        appendMsg(text, 'user'); input.value = '';
 
-        const systemPrompt = currentSubject ? `Tu es un professeur de ${currentSubject} pour un élève de ${user.user_metadata.age} ans. Sois pédagogue.` : `Tu es Cogitron, IA sympa pour un enfant de ${user.user_metadata.age} ans.`;
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
 
+        const system = currentSubject ? `Tu es prof de ${currentSubject}.` : "Tu es Cogitron IA.";
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: systemPrompt}, {role: "user", content: text}]
+                messages: [{role: "system", content: system}, {role: "user", content: text}]
             })
         });
         const d = await res.json();
         const reply = d.choices[0].message.content;
         appendMsg(reply, 'bot');
-        await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
     }
 
     function appendMsg(t, type) {
@@ -197,19 +183,20 @@
     }
 
     async function createNewChat() {
-        currentSubject = null;
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Nouvelle Discussion')}]).select();
+        if(isGuest) return;
+        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Discussion')}]).select();
         activeChatId = data[0].id;
         document.getElementById('chat-window').innerHTML = '';
         loadHistory();
     }
 
     async function loadHistory() {
+        if(isGuest) return;
         const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
         const list = document.getElementById('chat-list'); list.innerHTML = '';
         data?.forEach(c => {
             const item = document.createElement('div');
-            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.75rem; border-left: 3px solid var(--blue)";
+            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.7rem;";
             item.innerText = unlock(c.title);
             item.onclick = () => loadChat(c.id);
             list.appendChild(item);
@@ -228,7 +215,228 @@
             user = sess.user;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
-            document.getElementById('user-display').innerText = `${user.user_metadata.nickname} (${user.user_metadata.age} ans)`;
+            loadHistory();
+        }
+    });
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cogitron V4 - Louis Edition</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --card: #161925; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* PETITE POPUP COOKIES EN BAS */
+        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* INTERFACE */
+        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
+        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
+        
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 80%; padding: 15px; border-radius: 15px; line-height: 1.4; position: relative; }
+        .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
+        .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid var(--blue); }
+
+        /* BOUTONS MATIÈRES */
+        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 15px; }
+        .subject-btn { background: #1c1e2d; color: #ccc; border: 1px solid #333; padding: 6px; font-size: 0.75rem; border-radius: 5px; cursor: pointer; }
+        .subject-btn:hover { border-color: var(--blue); color: white; }
+
+        .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; align-items: center; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
+        .btn-icon { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .btn-icon:hover { color: var(--blue); }
+
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="cookie-bar" style="display: none;">
+        <span style="font-size: 0.8rem;">🍪 On utilise des cookies ?</span>
+        <button onclick="acceptCookies(true)" style="background: var(--blue); color: black; padding: 5px 15px; border-radius: 20px;">OUI</button>
+        <button onclick="acceptCookies(false)" style="background: none; color: white;">NON (PRIVÉ)</button>
+    </div>
+
+    <div id="auth-screen">
+        <div class="auth-card">
+            <h1 class="logo">COGITRON</h1>
+            <div id="auth-inputs">
+                <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
+                <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
+            </div>
+            <button onclick="submitAuth()" style="width:100%; padding:12px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
+            <button onclick="startGuestMode()" style="width:100%; padding:10px; background:none; color:var(--blue); border:1px solid var(--blue); margin-top:10px;">MODE INVITÉ (Sans compte)</button>
+        </div>
+    </div>
+
+    <div id="main-app" style="display: none; width:100%;">
+        <div class="sidebar">
+            <h2 class="logo">COGITRON</h2>
+            <div id="user-display" style="text-align:center; font-size:0.7rem; color:var(--blue); margin-bottom:15px;"></div>
+            
+            <p style="font-size:0.6rem; color:var(--pink); margin-bottom:5px;">🎓 MODE PROF</p>
+            <div class="grid-prof">
+                <button class="subject-btn" onclick="setSubject('Maths')">📐 Maths</button>
+                <button class="subject-btn" onclick="setSubject('Français')">✍️ Français</button>
+                <button class="subject-btn" onclick="setSubject('Anglais')">🇬🇧 Anglais</button>
+                <button class="subject-btn" onclick="setSubject('Histoire')">📜 Histoire</button>
+                <button class="subject-btn" onclick="setSubject('Sciences')">🧪 Sciences</button>
+                <button class="subject-btn" onclick="setSubject('Code')">💻 Code</button>
+            </div>
+
+            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--blue); color:black; font-size:0.8rem;">+ NOUVEAU CHAT</button>
+            <div id="chat-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
+        </div>
+
+        <div class="main">
+            <div id="chat-window"></div>
+            <div class="input-box">
+                <div class="input-wrap">
+                    <button class="btn-icon" onclick="alert('Ajout de fichier bientôt disponible !')">📎</button>
+                    <input type="text" id="user-input" placeholder="Dis moi quelque chose ou tape /image..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()" style="background:var(--blue); padding:8px 15px; color:black; border-radius:8px;">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const GROQ_KEY = "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";
+    const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    let user = null, activeChatId = null, userKey = null, currentSubject = null, isGuest = false;
+
+    // --- COOKIES ---
+    if(!localStorage.getItem('cogitron_choice')) document.getElementById('cookie-bar').style.display = 'flex';
+    function acceptCookies(ok) {
+        localStorage.setItem('cogitron_choice', ok ? 'full' : 'private');
+        if(!ok) userKey = "GUEST_KEY_LOUIS";
+        document.getElementById('cookie-bar').style.fadeOut = "slow";
+        setTimeout(() => document.getElementById('cookie-bar').style.display = 'none', 500);
+    }
+
+    // --- CRYPTAGE RÉPARÉ ---
+    const lock = (t) => (userKey && t) ? "SEC_" + btoa(unescape(encodeURIComponent(t))) : t;
+    const unlock = (t) => {
+        if(!t) return "";
+        if(t.startsWith("SEC_")) {
+            try { return decodeURIComponent(escape(atob(t.replace("SEC_", "")))); } 
+            catch(e) { return "🔒 [Message Crypté]"; }
+        }
+        return t;
+    };
+
+    // --- AUTH & GUEST ---
+    async function submitAuth() {
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
+        const {data, error} = await sb.auth.signInWithPassword({email:e, password:p});
+        if(error) alert("Erreur : " + error.message);
+    }
+    function startGuestMode() {
+        isGuest = true; user = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        document.getElementById('user-display').innerText = "Mode Invité (Pas de sauvegarde)";
+    }
+
+    // --- MATIÈRES ---
+    function setSubject(s) {
+        currentSubject = s;
+        appendMsg(`🎓 Je suis maintenant ton prof de **${s}**. Que veux-tu apprendre ?`, 'bot');
+    }
+
+    // --- ENVOI & IA ---
+    async function sendMessage() {
+        const input = document.getElementById('user-input'), text = input.value.trim();
+        if(!text) return;
+
+        // IMAGE IA (Simulation)
+        if(text.startsWith("/image")) {
+            appendMsg(text, 'user'); input.value = '';
+            appendMsg(`🎨 Génération de : *${text.replace('/image','')}*...`, 'bot');
+            setTimeout(() => {
+                const imgUrl = `https://picsum.photos/seed/${Math.random()}/400/300`;
+                appendMsg(`Voici ton image : <br><img src="${imgUrl}">`, 'bot');
+            }, 2000);
+            return;
+        }
+
+        if(!isGuest && !activeChatId) await createNewChat();
+        appendMsg(text, 'user'); input.value = '';
+
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
+
+        const system = currentSubject ? `Tu es prof de ${currentSubject}.` : "Tu es Cogitron IA.";
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
+            body: JSON.stringify({
+                model: "llama-3.3-70b-versatile",
+                messages: [{role: "system", content: system}, {role: "user", content: text}]
+            })
+        });
+        const d = await res.json();
+        const reply = d.choices[0].message.content;
+        appendMsg(reply, 'bot');
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
+    }
+
+    function appendMsg(t, type) {
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.innerHTML = marked.parse(t);
+        document.getElementById('chat-window').appendChild(d);
+        document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+    }
+
+    async function createNewChat() {
+        if(isGuest) return;
+        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Discussion')}]).select();
+        activeChatId = data[0].id;
+        document.getElementById('chat-window').innerHTML = '';
+        loadHistory();
+    }
+
+    async function loadHistory() {
+        if(isGuest) return;
+        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
+        const list = document.getElementById('chat-list'); list.innerHTML = '';
+        data?.forEach(c => {
+            const item = document.createElement('div');
+            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.7rem;";
+            item.innerText = unlock(c.title);
+            item.onclick = () => loadChat(c.id);
+            list.appendChild(item);
+        });
+    }
+
+    async function loadChat(id) {
+        activeChatId = id;
+        const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
+        document.getElementById('chat-window').innerHTML = '';
+        data?.forEach(m => appendMsg(unlock(m.content), m.role === 'user' ? 'user' : 'bot'));
+    }
+
+    sb.auth.onAuthStateChange((ev, sess) => {
+        if(sess) {
+            user = sess.user;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
             loadHistory();
         }
     });
