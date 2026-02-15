@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron V4 - Louis Edition</title>
+    <title>Cogitron V5 - Fix Louis</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
@@ -11,82 +11,98 @@
         :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --card: #161925; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* PETITE POPUP COOKIES EN BAS */
-        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* COOKIE BAR */
+        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 12px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
         
-        /* INTERFACE */
-        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
-        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        /* SIDEBAR */
+        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
         .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
         
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 15px; border-radius: 15px; line-height: 1.4; position: relative; }
-        .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
-        .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
-        .msg img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid var(--blue); }
+        /* CHAT AREA */
+        .main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); }
+        #chat-window { flex-grow: 1; overflow-y: auto; padding: 30px 10%; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 85%; padding: 12px 18px; border-radius: 15px; line-height: 1.5; font-size: 0.95rem; }
+        .user { align-self: flex-end; background: #2b2d3e; border-bottom-right-radius: 2px; border-right: 4px solid var(--pink); }
+        .bot { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 2px; border-left: 4px solid var(--blue); }
 
-        /* BOUTONS MATIÈRES */
-        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 15px; }
-        .subject-btn { background: #1c1e2d; color: #ccc; border: 1px solid #333; padding: 6px; font-size: 0.75rem; border-radius: 5px; cursor: pointer; }
-        .subject-btn:hover { border-color: var(--blue); color: white; }
+        /* GRID PROF */
+        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .sub-btn { background: #1c1e2d; color: #aaa; border: 1px solid #333; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        .sub-btn:hover { border-color: var(--blue); color: white; background: #252839; }
 
-        .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; align-items: center; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
-        .btn-icon { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        .btn-icon:hover { color: var(--blue); }
-
+        /* INPUT */
+        .input-box { padding: 20px; background: #0d0e14; border-top: 1px solid #222; }
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #444; max-width: 900px; margin: 0 auto; align-items: center; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; font-size: 1rem; }
+        
+        /* AUTH SCREEN */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
+        .auth-card { background: var(--card); padding: 35px; border-radius: 25px; border: 1px solid #333; width: 340px; text-align: center; }
+        .auth-card input, .auth-card select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
+        
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; transition: 0.2s; }
+        .btn-main { background: var(--pink); color: white; width: 100%; padding: 14px; margin-top: 10px; }
+        .btn-sec { background: none; color: var(--blue); border: 1px solid var(--blue); width: 100%; padding: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="cookie-bar" style="display: none;">
-        <span style="font-size: 0.8rem;">🍪 On utilise des cookies ?</span>
-        <button onclick="acceptCookies(true)" style="background: var(--blue); color: black; padding: 5px 15px; border-radius: 20px;">OUI</button>
-        <button onclick="acceptCookies(false)" style="background: none; color: white;">NON (PRIVÉ)</button>
+    <div id="cookie-bar">
+        <span style="font-size: 0.8rem;">🍪 Cookies pour sauver tes chats ?</span>
+        <button onclick="setPrivacy(true)" style="background: var(--blue); color: black; padding: 5px 15px;">OUI</button>
+        <button onclick="setPrivacy(false)" style="background: none; color: white;">NON</button>
     </div>
 
     <div id="auth-screen">
         <div class="auth-card">
             <h1 class="logo">COGITRON</h1>
-            <div id="auth-inputs">
-                <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
-                <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
+            <div id="auth-fields">
+                <input type="email" id="email" placeholder="Ton Email">
+                <input type="password" id="pass" placeholder="Mot de passe">
+                <div id="signup-fields" style="display:none;">
+                    <input type="text" id="nick" placeholder="Ton Pseudo">
+                    <select id="user-age">
+                        <option value="11">11 ans (6ème)</option>
+                        <option value="12">12 ans (5ème)</option>
+                        <option value="13">13 ans (4ème)</option>
+                        <option value="14">14 ans (3ème)</option>
+                    </select>
+                </div>
             </div>
-            <button onclick="submitAuth()" style="width:100%; padding:12px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
-            <button onclick="startGuestMode()" style="width:100%; padding:10px; background:none; color:var(--blue); border:1px solid var(--blue); margin-top:10px;">MODE INVITÉ (Sans compte)</button>
+            <button onclick="handleAuth()" id="btn-auth-main" class="btn-main">CONNEXION</button>
+            <button onclick="toggleSignup()" id="btn-switch" style="background:none; color:#888; font-size:0.8rem; margin-top:10px;">Pas de compte ? S'inscrire</button>
+            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
+            <button onclick="startGuest()" class="btn-sec">MODE INVITÉ (Sans Compte)</button>
         </div>
     </div>
 
     <div id="main-app" style="display: none; width:100%;">
         <div class="sidebar">
             <h2 class="logo">COGITRON</h2>
-            <div id="user-display" style="text-align:center; font-size:0.7rem; color:var(--blue); margin-bottom:15px;"></div>
+            <div id="user-info" style="font-size:0.75rem; color:var(--blue); text-align:center; margin-bottom:20px; padding:5px; border:1px dashed #333;"></div>
             
-            <p style="font-size:0.6rem; color:var(--pink); margin-bottom:5px;">🎓 MODE PROF</p>
+            <p style="font-size:0.65rem; color:var(--pink); letter-spacing:1px; margin-bottom:10px;">📚 MATIÈRES PROF</p>
             <div class="grid-prof">
-                <button class="subject-btn" onclick="setSubject('Maths')">📐 Maths</button>
-                <button class="subject-btn" onclick="setSubject('Français')">✍️ Français</button>
-                <button class="subject-btn" onclick="setSubject('Anglais')">🇬🇧 Anglais</button>
-                <button class="subject-btn" onclick="setSubject('Histoire')">📜 Histoire</button>
-                <button class="subject-btn" onclick="setSubject('Sciences')">🧪 Sciences</button>
-                <button class="subject-btn" onclick="setSubject('Code')">💻 Code</button>
+                <button class="sub-btn" onclick="startProf('Mathématiques')">📐 Maths</button>
+                <button class="sub-btn" onclick="startProf('Français')">✍️ Français</button>
+                <button class="sub-btn" onclick="startProf('Histoire-Géo')">🌍 Histoire</button>
+                <button class="sub-btn" onclick="startProf('Sciences-SVT')">🧪 SVT</button>
+                <button class="sub-btn" onclick="startProf('Anglais')">🇬🇧 Anglais</button>
+                <button class="sub-btn" onclick="startProf('Informatique')">💻 Code</button>
             </div>
 
-            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--blue); color:black; font-size:0.8rem;">+ NOUVEAU CHAT</button>
-            <div id="chat-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
+            <button onclick="newChat()" style="width:100%; padding:12px; background:var(--blue); color:black; font-size:0.85rem;">+ NOUVELLE BULLE</button>
+            <div id="history-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
+            <button onclick="logout()" style="background:none; color:#ff4444; font-size:0.7rem; margin-top:10px;">Déconnexion</button>
         </div>
 
         <div class="main">
             <div id="chat-window"></div>
             <div class="input-box">
                 <div class="input-wrap">
-                    <button class="btn-icon" onclick="alert('Ajout de fichier bientôt disponible !')">📎</button>
-                    <input type="text" id="user-input" placeholder="Dis moi quelque chose ou tape /image..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()" style="background:var(--blue); padding:8px 15px; color:black; border-radius:8px;">OK</button>
+                    <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="alert('Bientôt : Envoi de photos !')">🖼️</button>
+                    <input type="text" id="user-input" placeholder="Demande n'importe quoi ou tape /image..." onkeypress="if(event.key==='Enter') send()">
+                    <button onclick="send()" style="background:var(--blue); padding:10px 20px; color:black; border-radius:8px;">OK</button>
                 </div>
             </div>
         </div>
@@ -98,83 +114,98 @@
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let user = null, activeChatId = null, userKey = null, currentSubject = null, isGuest = false;
+    let currentUser = null, activeChatId = null, isSignupMode = false, isGuest = false, userSecret = null;
 
-    // --- COOKIES ---
-    if(!localStorage.getItem('cogitron_choice')) document.getElementById('cookie-bar').style.display = 'flex';
-    function acceptCookies(ok) {
-        localStorage.setItem('cogitron_choice', ok ? 'full' : 'private');
-        if(!ok) userKey = "GUEST_KEY_LOUIS";
-        document.getElementById('cookie-bar').style.fadeOut = "slow";
-        setTimeout(() => document.getElementById('cookie-bar').style.display = 'none', 500);
-    }
-
-    // --- CRYPTAGE RÉPARÉ ---
-    const lock = (t) => (userKey && t) ? "SEC_" + btoa(unescape(encodeURIComponent(t))) : t;
-    const unlock = (t) => {
-        if(!t) return "";
-        if(t.startsWith("SEC_")) {
-            try { return decodeURIComponent(escape(atob(t.replace("SEC_", "")))); } 
-            catch(e) { return "🔒 [Message Crypté]"; }
+    // --- SÉCURITÉ & DÉCRYPTAGE (FIXÉ) ---
+    function encrypt(t) { return userSecret ? "🔒_" + btoa(unescape(encodeURIComponent(t))) : t; }
+    function decrypt(t) {
+        if (!t) return "";
+        if (t.startsWith("🔒_")) {
+            try { return decodeURIComponent(escape(atob(t.replace("🔒_", "")))); } 
+            catch(e) { return "🔑 [Message Verrouillé]"; }
         }
         return t;
-    };
-
-    // --- AUTH & GUEST ---
-    async function submitAuth() {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        const {data, error} = await sb.auth.signInWithPassword({email:e, password:p});
-        if(error) alert("Erreur : " + error.message);
     }
-    function startGuestMode() {
-        isGuest = true; user = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
+
+    // --- GESTION PRIVACY ---
+    function setPrivacy(accept) {
+        if(!accept) userSecret = "PRIVATE_SESSION";
+        localStorage.setItem('cogitron_consent', accept ? 'yes' : 'no');
+        document.getElementById('cookie-bar').style.display = 'none';
+    }
+    if(localStorage.getItem('cogitron_consent')) setPrivacy(localStorage.getItem('cogitron_consent') === 'yes');
+
+    // --- AUTHENTIFICATION ---
+    function toggleSignup() {
+        isSignupMode = !isSignupMode;
+        document.getElementById('signup-fields').style.display = isSignupMode ? 'block' : 'none';
+        document.getElementById('btn-auth-main').innerText = isSignupMode ? 'CRÉER MON COMPTE' : 'CONNEXION';
+        document.getElementById('btn-switch').innerText = isSignupMode ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire';
+    }
+
+    async function handleAuth() {
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
+        if(isSignupMode) {
+            const n = document.getElementById('nick').value, a = document.getElementById('user-age').value;
+            const {error} = await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
+            if(error) alert(error.message); else alert("Bravo Louis ! Vérifie tes emails.");
+        } else {
+            const {error} = await sb.auth.signInWithPassword({email:e, password:p});
+            if(error) alert("Erreur : " + error.message);
+        }
+    }
+
+    function startGuest() {
+        isGuest = true; currentUser = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
+        userSecret = "GUEST_MODE";
+        launchApp();
+    }
+
+    function launchApp() {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'flex';
-        document.getElementById('user-display').innerText = "Mode Invité (Pas de sauvegarde)";
+        document.getElementById('user-info').innerText = `${currentUser.user_metadata.nickname} (${currentUser.user_metadata.age} ans)`;
+        if(!isGuest) loadHistory();
     }
 
     // --- MATIÈRES ---
-    function setSubject(s) {
-        currentSubject = s;
-        appendMsg(`🎓 Je suis maintenant ton prof de **${s}**. Que veux-tu apprendre ?`, 'bot');
+    function startProf(subj) {
+        newChat(`Prof de ${subj}`);
+        addMsg(`🎓 **Bonjour ! Je suis ton assistant en ${subj}.** Comment puis-je t'aider aujourd'hui ?`, 'bot');
     }
 
-    // --- ENVOI & IA ---
-    async function sendMessage() {
+    // --- CHAT LOGIC ---
+    async function send() {
         const input = document.getElementById('user-input'), text = input.value.trim();
         if(!text) return;
 
-        // IMAGE IA (Simulation)
+        // Commande Image
         if(text.startsWith("/image")) {
-            appendMsg(text, 'user'); input.value = '';
-            appendMsg(`🎨 Génération de : *${text.replace('/image','')}*...`, 'bot');
-            setTimeout(() => {
-                const imgUrl = `https://picsum.photos/seed/${Math.random()}/400/300`;
-                appendMsg(`Voici ton image : <br><img src="${imgUrl}">`, 'bot');
-            }, 2000);
+            addMsg(text, 'user'); input.value = '';
+            addMsg(`🎨 Génération de l'image...`, 'bot');
+            setTimeout(() => addMsg(`<img src="https://picsum.photos/seed/${Math.random()}/500/300" style="width:100%; border-radius:10px;">`, 'bot'), 1500);
             return;
         }
 
-        if(!isGuest && !activeChatId) await createNewChat();
-        appendMsg(text, 'user'); input.value = '';
+        if(!isGuest && !activeChatId) await newChat();
+        addMsg(text, 'user'); input.value = '';
 
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'user', content: encrypt(text)}]);
 
-        const system = currentSubject ? `Tu es prof de ${currentSubject}.` : "Tu es Cogitron IA.";
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: system}, {role: "user", content: text}]
+                messages: [{role: "system", content: `Tu es Cogitron, assistant pour un enfant de ${currentUser.user_metadata.age} ans.`}, {role: "user", content: text}]
             })
         });
         const d = await res.json();
         const reply = d.choices[0].message.content;
-        appendMsg(reply, 'bot');
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
+        addMsg(reply, 'bot');
+        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'bot', content: encrypt(reply)}]);
     }
 
-    function appendMsg(t, type) {
+    function addMsg(t, type) {
         const d = document.createElement('div');
         d.className = `msg ${type}`;
         d.innerHTML = marked.parse(t);
@@ -182,22 +213,21 @@
         document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
     }
 
-    async function createNewChat() {
-        if(isGuest) return;
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Discussion')}]).select();
+    async function newChat(title = "Nouvelle Discussion") {
+        if(isGuest) { document.getElementById('chat-window').innerHTML = ''; return; }
+        const {data} = await sb.from('chats').insert([{user_id: currentUser.id, title: encrypt(title)}]).select();
         activeChatId = data[0].id;
         document.getElementById('chat-window').innerHTML = '';
         loadHistory();
     }
 
     async function loadHistory() {
-        if(isGuest) return;
-        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
-        const list = document.getElementById('chat-list'); list.innerHTML = '';
+        const {data} = await sb.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
+        const list = document.getElementById('history-list'); list.innerHTML = '';
         data?.forEach(c => {
             const item = document.createElement('div');
-            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.7rem;";
-            item.innerText = unlock(c.title);
+            item.style = "padding:10px; background:#1c1e2d; margin-bottom:5px; border-radius:8px; cursor:pointer; font-size:0.75rem; border-left: 2px solid var(--pink);";
+            item.innerText = decrypt(c.title);
             item.onclick = () => loadChat(c.id);
             list.appendChild(item);
         });
@@ -207,238 +237,13 @@
         activeChatId = id;
         const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
         document.getElementById('chat-window').innerHTML = '';
-        data?.forEach(m => appendMsg(unlock(m.content), m.role === 'user' ? 'user' : 'bot'));
+        data?.forEach(m => addMsg(decrypt(m.content), m.role));
     }
+
+    function logout() { sb.auth.signOut(); location.reload(); }
 
     sb.auth.onAuthStateChange((ev, sess) => {
-        if(sess) {
-            user = sess.user;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            loadHistory();
-        }
-    });
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron V4 - Louis Edition</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
-    <style>
-        :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --card: #161925; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* PETITE POPUP COOKIES EN BAS */
-        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 15px 25px; border-radius: 50px; display: flex; align-items: center; gap: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        /* INTERFACE */
-        .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; }
-        .main { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
-        
-        #chat-window { flex-grow: 1; overflow-y: auto; padding: 50px 10%; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 80%; padding: 15px; border-radius: 15px; line-height: 1.4; position: relative; }
-        .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
-        .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
-        .msg img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid var(--blue); }
-
-        /* BOUTONS MATIÈRES */
-        .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 15px; }
-        .subject-btn { background: #1c1e2d; color: #ccc; border: 1px solid #333; padding: 6px; font-size: 0.75rem; border-radius: 5px; cursor: pointer; }
-        .subject-btn:hover { border-color: var(--blue); color: white; }
-
-        .input-box { padding: 20px; background: var(--bg); border-top: 1px solid #222; }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; max-width: 800px; margin: 0 auto; align-items: center; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
-        .btn-icon { background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; padding: 5px; }
-        .btn-icon:hover { color: var(--blue); }
-
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid var(--pink); width: 320px; text-align: center; }
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-    <div id="cookie-bar" style="display: none;">
-        <span style="font-size: 0.8rem;">🍪 On utilise des cookies ?</span>
-        <button onclick="acceptCookies(true)" style="background: var(--blue); color: black; padding: 5px 15px; border-radius: 20px;">OUI</button>
-        <button onclick="acceptCookies(false)" style="background: none; color: white;">NON (PRIVÉ)</button>
-    </div>
-
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h1 class="logo">COGITRON</h1>
-            <div id="auth-inputs">
-                <input type="email" id="email" placeholder="Email" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
-                <input type="password" id="pass" placeholder="Mot de passe" style="width:100%; margin:5px 0; padding:10px; background:#000; border:1px solid #333; color:white;">
-            </div>
-            <button onclick="submitAuth()" style="width:100%; padding:12px; background:var(--pink); color:white; margin-top:10px;">CONNEXION</button>
-            <button onclick="startGuestMode()" style="width:100%; padding:10px; background:none; color:var(--blue); border:1px solid var(--blue); margin-top:10px;">MODE INVITÉ (Sans compte)</button>
-        </div>
-    </div>
-
-    <div id="main-app" style="display: none; width:100%;">
-        <div class="sidebar">
-            <h2 class="logo">COGITRON</h2>
-            <div id="user-display" style="text-align:center; font-size:0.7rem; color:var(--blue); margin-bottom:15px;"></div>
-            
-            <p style="font-size:0.6rem; color:var(--pink); margin-bottom:5px;">🎓 MODE PROF</p>
-            <div class="grid-prof">
-                <button class="subject-btn" onclick="setSubject('Maths')">📐 Maths</button>
-                <button class="subject-btn" onclick="setSubject('Français')">✍️ Français</button>
-                <button class="subject-btn" onclick="setSubject('Anglais')">🇬🇧 Anglais</button>
-                <button class="subject-btn" onclick="setSubject('Histoire')">📜 Histoire</button>
-                <button class="subject-btn" onclick="setSubject('Sciences')">🧪 Sciences</button>
-                <button class="subject-btn" onclick="setSubject('Code')">💻 Code</button>
-            </div>
-
-            <button onclick="createNewChat()" style="width:100%; padding:10px; background:var(--blue); color:black; font-size:0.8rem;">+ NOUVEAU CHAT</button>
-            <div id="chat-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
-        </div>
-
-        <div class="main">
-            <div id="chat-window"></div>
-            <div class="input-box">
-                <div class="input-wrap">
-                    <button class="btn-icon" onclick="alert('Ajout de fichier bientôt disponible !')">📎</button>
-                    <input type="text" id="user-input" placeholder="Dis moi quelque chose ou tape /image..." onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()" style="background:var(--blue); padding:8px 15px; color:black; border-radius:8px;">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<script>
-    const GROQ_KEY = "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";
-    const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
-    const sb = supabase.createClient(SB_URL, SB_KEY);
-
-    let user = null, activeChatId = null, userKey = null, currentSubject = null, isGuest = false;
-
-    // --- COOKIES ---
-    if(!localStorage.getItem('cogitron_choice')) document.getElementById('cookie-bar').style.display = 'flex';
-    function acceptCookies(ok) {
-        localStorage.setItem('cogitron_choice', ok ? 'full' : 'private');
-        if(!ok) userKey = "GUEST_KEY_LOUIS";
-        document.getElementById('cookie-bar').style.fadeOut = "slow";
-        setTimeout(() => document.getElementById('cookie-bar').style.display = 'none', 500);
-    }
-
-    // --- CRYPTAGE RÉPARÉ ---
-    const lock = (t) => (userKey && t) ? "SEC_" + btoa(unescape(encodeURIComponent(t))) : t;
-    const unlock = (t) => {
-        if(!t) return "";
-        if(t.startsWith("SEC_")) {
-            try { return decodeURIComponent(escape(atob(t.replace("SEC_", "")))); } 
-            catch(e) { return "🔒 [Message Crypté]"; }
-        }
-        return t;
-    };
-
-    // --- AUTH & GUEST ---
-    async function submitAuth() {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        const {data, error} = await sb.auth.signInWithPassword({email:e, password:p});
-        if(error) alert("Erreur : " + error.message);
-    }
-    function startGuestMode() {
-        isGuest = true; user = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        document.getElementById('user-display').innerText = "Mode Invité (Pas de sauvegarde)";
-    }
-
-    // --- MATIÈRES ---
-    function setSubject(s) {
-        currentSubject = s;
-        appendMsg(`🎓 Je suis maintenant ton prof de **${s}**. Que veux-tu apprendre ?`, 'bot');
-    }
-
-    // --- ENVOI & IA ---
-    async function sendMessage() {
-        const input = document.getElementById('user-input'), text = input.value.trim();
-        if(!text) return;
-
-        // IMAGE IA (Simulation)
-        if(text.startsWith("/image")) {
-            appendMsg(text, 'user'); input.value = '';
-            appendMsg(`🎨 Génération de : *${text.replace('/image','')}*...`, 'bot');
-            setTimeout(() => {
-                const imgUrl = `https://picsum.photos/seed/${Math.random()}/400/300`;
-                appendMsg(`Voici ton image : <br><img src="${imgUrl}">`, 'bot');
-            }, 2000);
-            return;
-        }
-
-        if(!isGuest && !activeChatId) await createNewChat();
-        appendMsg(text, 'user'); input.value = '';
-
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'user', content: lock(text)}]);
-
-        const system = currentSubject ? `Tu es prof de ${currentSubject}.` : "Tu es Cogitron IA.";
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: system}, {role: "user", content: text}]
-            })
-        });
-        const d = await res.json();
-        const reply = d.choices[0].message.content;
-        appendMsg(reply, 'bot');
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: user.id, role:'bot', content: lock(reply)}]);
-    }
-
-    function appendMsg(t, type) {
-        const d = document.createElement('div');
-        d.className = `msg ${type}`;
-        d.innerHTML = marked.parse(t);
-        document.getElementById('chat-window').appendChild(d);
-        document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-    }
-
-    async function createNewChat() {
-        if(isGuest) return;
-        const {data} = await sb.from('chats').insert([{user_id: user.id, title: lock('Discussion')}]).select();
-        activeChatId = data[0].id;
-        document.getElementById('chat-window').innerHTML = '';
-        loadHistory();
-    }
-
-    async function loadHistory() {
-        if(isGuest) return;
-        const {data} = await sb.from('chats').select('*').eq('user_id', user.id).order('created_at', {ascending:false});
-        const list = document.getElementById('chat-list'); list.innerHTML = '';
-        data?.forEach(c => {
-            const item = document.createElement('div');
-            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.7rem;";
-            item.innerText = unlock(c.title);
-            item.onclick = () => loadChat(c.id);
-            list.appendChild(item);
-        });
-    }
-
-    async function loadChat(id) {
-        activeChatId = id;
-        const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
-        document.getElementById('chat-window').innerHTML = '';
-        data?.forEach(m => appendMsg(unlock(m.content), m.role === 'user' ? 'user' : 'bot'));
-    }
-
-    sb.auth.onAuthStateChange((ev, sess) => {
-        if(sess) {
-            user = sess.user;
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-            loadHistory();
-        }
+        if(sess) { currentUser = sess.user; launchApp(); }
     });
 </script>
 </body>
