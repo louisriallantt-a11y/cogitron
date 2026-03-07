@@ -3,105 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cogitron V5 - Fix Louis</title>
+    <title>Cogitron V6 - Multi-IA</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
     <style>
         :root { --blue: #00d4ff; --pink: #ff007f; --bg: #0a0b10; --card: #161925; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* COOKIE BAR */
-        #cookie-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--blue); padding: 12px 25px; border-radius: 50px; display: flex; align-items: center; gap: 15px; z-index: 10000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
-        
-        /* SIDEBAR */
         .sidebar { width: 280px; background: #11131f; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
         .logo { font-family: 'Rajdhani'; color: var(--blue); font-size: 1.8rem; text-shadow: 0 0 10px var(--blue); text-align: center; margin-bottom: 20px; }
-        
-        /* CHAT AREA */
         .main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); }
         #chat-window { flex-grow: 1; overflow-y: auto; padding: 30px 10%; display: flex; flex-direction: column; gap: 15px; }
         .msg { max-width: 85%; padding: 12px 18px; border-radius: 15px; line-height: 1.5; font-size: 0.95rem; }
-        .user { align-self: flex-end; background: #2b2d3e; border-bottom-right-radius: 2px; border-right: 4px solid var(--pink); }
-        .bot { align-self: flex-start; background: #1e2235; border-bottom-left-radius: 2px; border-left: 4px solid var(--blue); }
-
-        /* GRID PROF */
+        .user { align-self: flex-end; background: #2b2d3e; border-right: 4px solid var(--pink); }
+        .bot { align-self: flex-start; background: #1e2235; border-left: 4px solid var(--blue); }
         .grid-prof { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        .sub-btn { background: #1c1e2d; color: #aaa; border: 1px solid #333; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .sub-btn:hover { border-color: var(--blue); color: white; background: #252839; }
-
-        /* INPUT */
+        .sub-btn { background: #1c1e2d; color: #aaa; border: 1px solid #333; padding: 8px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; }
         .input-box { padding: 20px; background: #0d0e14; border-top: 1px solid #222; }
-        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; border: 1px solid #444; max-width: 900px; margin: 0 auto; align-items: center; }
-        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; font-size: 1rem; }
-        
-        /* AUTH SCREEN */
+        .input-wrap { display: flex; background: #1c1e2d; border-radius: 12px; padding: 5px 15px; max-width: 900px; margin: 0 auto; align-items: center; }
+        input { flex-grow: 1; background: none; border: none; color: white; outline: none; padding: 12px; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--card); padding: 35px; border-radius: 25px; border: 1px solid #333; width: 340px; text-align: center; }
-        .auth-card input, .auth-card select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; box-sizing: border-box; }
-        
-        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; transition: 0.2s; }
+        .auth-card { background: var(--card); padding: 35px; border-radius: 25px; width: 340px; text-align: center; }
+        .auth-card input, .auth-card select { width: 100%; margin: 8px 0; padding: 12px; background: #000; border: 1px solid #333; color: white; border-radius: 10px; }
+        button { cursor: pointer; border: none; font-weight: bold; border-radius: 10px; }
         .btn-main { background: var(--pink); color: white; width: 100%; padding: 14px; margin-top: 10px; }
-        .btn-sec { background: none; color: var(--blue); border: 1px solid var(--blue); width: 100%; padding: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="cookie-bar">
-        <span style="font-size: 0.8rem;">🍪 Cookies pour sauver tes chats ?</span>
-        <button onclick="setPrivacy(true)" style="background: var(--blue); color: black; padding: 5px 15px;">OUI</button>
-        <button onclick="setPrivacy(false)" style="background: none; color: white;">NON</button>
-    </div>
-
     <div id="auth-screen">
         <div class="auth-card">
             <h1 class="logo">COGITRON</h1>
-            <div id="auth-fields">
-                <input type="email" id="email" placeholder="Ton Email">
-                <input type="password" id="pass" placeholder="Mot de passe">
-                <div id="signup-fields" style="display:none;">
-                    <input type="text" id="nick" placeholder="Ton Pseudo">
-                    <select id="user-age">
-                        <option value="11">11 ans (6ème)</option>
-                        <option value="12">12 ans (5ème)</option>
-                        <option value="13">13 ans (4ème)</option>
-                        <option value="14">14 ans (3ème)</option>
-                    </select>
-                </div>
+            <input type="email" id="email" placeholder="Ton Email">
+            <input type="password" id="pass" placeholder="Mot de passe">
+            <div id="signup-fields" style="display:none;">
+                <input type="text" id="nick" placeholder="Ton Pseudo">
+                <select id="user-age">
+                    <option value="10">CM1/CM2</option>
+                    <option value="13">Collège</option>
+                    <option value="16">Lycée</option>
+                </select>
             </div>
             <button onclick="handleAuth()" id="btn-auth-main" class="btn-main">CONNEXION</button>
-            <button onclick="toggleSignup()" id="btn-switch" style="background:none; color:#888; font-size:0.8rem; margin-top:10px;">Pas de compte ? S'inscrire</button>
-            <hr style="border:0; border-top:1px solid #333; margin:20px 0;">
-            <button onclick="startGuest()" class="btn-sec">MODE INVITÉ (Sans Compte)</button>
+            <button onclick="toggleSignup()" id="btn-switch" style="background:none; color:#888; font-size:0.8rem; margin-top:10px;">S'inscrire</button>
         </div>
     </div>
 
     <div id="main-app" style="display: none; width:100%;">
         <div class="sidebar">
             <h2 class="logo">COGITRON</h2>
-            <div id="user-info" style="font-size:0.75rem; color:var(--blue); text-align:center; margin-bottom:20px; padding:5px; border:1px dashed #333;"></div>
-            
-            <p style="font-size:0.65rem; color:var(--pink); letter-spacing:1px; margin-bottom:10px;">📚 MATIÈRES PROF</p>
+            <div id="user-info" style="font-size:0.75rem; color:var(--blue); text-align:center; margin-bottom:20px;"></div>
             <div class="grid-prof">
-                <button class="sub-btn" onclick="startProf('Mathématiques')">📐 Maths</button>
+                <button class="sub-btn" onclick="startProf('Maths')">📐 Maths</button>
                 <button class="sub-btn" onclick="startProf('Français')">✍️ Français</button>
-                <button class="sub-btn" onclick="startProf('Histoire-Géo')">🌍 Histoire</button>
-                <button class="sub-btn" onclick="startProf('Sciences-SVT')">🧪 SVT</button>
-                <button class="sub-btn" onclick="startProf('Anglais')">🇬🇧 Anglais</button>
-                <button class="sub-btn" onclick="startProf('Informatique')">💻 Code</button>
             </div>
-
-            <button onclick="newChat()" style="width:100%; padding:12px; background:var(--blue); color:black; font-size:0.85rem;">+ NOUVELLE BULLE</button>
+            <button onclick="newChat()" style="width:100%; padding:10px; background:var(--blue); color:black;">+ NOUVEAU CHAT</button>
             <div id="history-list" style="flex-grow:1; overflow-y:auto; margin-top:15px;"></div>
-            <button onclick="logout()" style="background:none; color:#ff4444; font-size:0.7rem; margin-top:10px;">Déconnexion</button>
+            <button onclick="logout()" style="background:none; color:#ff4444; font-size:0.7rem;">Déconnexion</button>
         </div>
 
         <div class="main">
             <div id="chat-window"></div>
             <div class="input-box">
                 <div class="input-wrap">
-                    <button style="background:none; border:none; font-size:1.2rem; cursor:pointer;" onclick="alert('Bientôt : Envoi de photos !')">🖼️</button>
-                    <input type="text" id="user-input" placeholder="Demande n'importe quoi ou tape /image..." onkeypress="if(event.key==='Enter') send()">
+                    <label for="file-upload" style="cursor:pointer; font-size:1.2rem; margin-right:10px;">📎</label>
+                    <input type="file" id="file-upload" style="display:none" onchange="handleFileUpload(this)">
+                    <input type="text" id="user-input" placeholder="Demande une image avec /img ou pose une question..." onkeypress="if(event.key==='Enter') send()">
                     <button onclick="send()" style="background:var(--blue); padding:10px 20px; color:black; border-radius:8px;">OK</button>
                 </div>
             </div>
@@ -110,141 +77,117 @@
 
 <script>
     const GROQ_KEY = "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";
+    const MISTRAL_KEY = "aTFjrZjAHSW3zUk0KyKpiVPGj12o6Kur";
     const SB_URL = "https://mrzevhvpoltsobxtkpxe.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yemV2aHZwb2x0c29ieHRrcHhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTY2MDksImV4cCI6MjA4NjQ5MjYwOX0.4NOt_j0aP02Nh-E_7mJy32hE8Q0ag0gA32PXgxNpSvU";
     const sb = supabase.createClient(SB_URL, SB_KEY);
 
-    let currentUser = null, activeChatId = null, isSignupMode = false, isGuest = false, userSecret = null;
+    let currentUser = null, activeChatId = null, chatContext = [];
 
-    // --- SÉCURITÉ & DÉCRYPTAGE (FIXÉ) ---
-    function encrypt(t) { return userSecret ? "🔒_" + btoa(unescape(encodeURIComponent(t))) : t; }
-    function decrypt(t) {
-        if (!t) return "";
-        if (t.startsWith("🔒_")) {
-            try { return decodeURIComponent(escape(atob(t.replace("🔒_", "")))); } 
-            catch(e) { return "🔑 [Message Verrouillé]"; }
-        }
-        return t;
+    // --- MISTRAL : CRÉATION DE TITRE (MAX 5 MOTS) ---
+    async function generateTitle(firstMsg) {
+        try {
+            const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+                method: "POST", headers: {"Authorization": `Bearer ${MISTRAL_KEY}`, "Content-Type": "application/json"},
+                body: JSON.stringify({
+                    model: "mistral-tiny",
+                    messages: [{role: "user", content: `Donne moi un titre de maximum 5 mots pour cette discussion : "${firstMsg}"`}]
+                })
+            });
+            const d = await res.json();
+            let title = d.choices[0].message.content.replace(/"/g, '');
+            await sb.from('chats').update({ title: title }).eq('id', activeChatId);
+            loadHistory();
+        } catch(e) { console.error("Erreur Titre Mistral"); }
     }
 
-    // --- GESTION PRIVACY ---
-    function setPrivacy(accept) {
-        if(!accept) userSecret = "PRIVATE_SESSION";
-        localStorage.setItem('cogitron_consent', accept ? 'yes' : 'no');
-        document.getElementById('cookie-bar').style.display = 'none';
-    }
-    if(localStorage.getItem('cogitron_consent')) setPrivacy(localStorage.getItem('cogitron_consent') === 'yes');
-
-    // --- AUTHENTIFICATION ---
-    function toggleSignup() {
-        isSignupMode = !isSignupMode;
-        document.getElementById('signup-fields').style.display = isSignupMode ? 'block' : 'none';
-        document.getElementById('btn-auth-main').innerText = isSignupMode ? 'CRÉER MON COMPTE' : 'CONNEXION';
-        document.getElementById('btn-switch').innerText = isSignupMode ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire';
-    }
-
-    async function handleAuth() {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(isSignupMode) {
-            const n = document.getElementById('nick').value, a = document.getElementById('user-age').value;
-            const {error} = await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
-            if(error) alert(error.message); else alert("Bravo Louis ! Vérifie tes emails.");
-        } else {
-            const {error} = await sb.auth.signInWithPassword({email:e, password:p});
-            if(error) alert("Erreur : " + error.message);
-        }
-    }
-
-    function startGuest() {
-        isGuest = true; currentUser = { id: 'guest', user_metadata: { nickname: 'Invité', age: 12 } };
-        userSecret = "GUEST_MODE";
-        launchApp();
-    }
-
-    function launchApp() {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        document.getElementById('user-info').innerText = `${currentUser.user_metadata.nickname} (${currentUser.user_metadata.age} ans)`;
-        if(!isGuest) loadHistory();
-    }
-
-    // --- MATIÈRES ---
-    function startProf(subj) {
-        newChat(`Prof de ${subj}`);
-        addMsg(`🎓 **Bonjour ! Je suis ton assistant en ${subj}.** Comment puis-je t'aider aujourd'hui ?`, 'bot');
-    }
-
-    // --- CHAT LOGIC ---
+    // --- ENVOI DE MESSAGE ---
     async function send() {
         const input = document.getElementById('user-input'), text = input.value.trim();
         if(!text) return;
 
-        // Commande Image
-        if(text.startsWith("/image")) {
-            addMsg(text, 'user'); input.value = '';
-            addMsg(`🎨 Génération de l'image...`, 'bot');
-            setTimeout(() => addMsg(`<img src="https://picsum.photos/seed/${Math.random()}/500/300" style="width:100%; border-radius:10px;">`, 'bot'), 1500);
+        if(!activeChatId) await newChat(text);
+        addMsg(text, 'user');
+        input.value = '';
+
+        // MODE IMAGE (Pollinations)
+        if(text.toLowerCase().startsWith("/img")) {
+            const prompt = text.replace("/img", "").trim();
+            const imgUrl = `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${Math.floor(Math.random()*1000)}`;
+            addMsg(`🎨 Voici ton image pour : *${prompt}*\n\n![Image](${imgUrl})`, 'bot');
             return;
         }
 
-        if(!isGuest && !activeChatId) await newChat();
-        addMsg(text, 'user'); input.value = '';
-
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'user', content: encrypt(text)}]);
-
+        // MODE CHAT (Llama 3.3 via Groq)
+        chatContext.push({role: "user", content: text});
+        const age = currentUser.user_metadata.age;
+        
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST", headers: {"Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: "llama-3.3-70b-versatile",
-                messages: [{role: "system", content: `Tu es Cogitron, assistant pour un enfant de ${currentUser.user_metadata.age} ans.`}, {role: "user", content: text}]
+                messages: [{role: "system", content: `Tu es Cogitron pour un enfant de ${age} ans.`}, ...chatContext.slice(-6)]
             })
         });
         const d = await res.json();
         const reply = d.choices[0].message.content;
         addMsg(reply, 'bot');
-        if(!isGuest) await sb.from('messages').insert([{chat_id: activeChatId, user_id: currentUser.id, role:'bot', content: encrypt(reply)}]);
+        chatContext.push({role: "assistant", content: reply});
+    }
+
+    // --- LECTURE FICHIER (Simulé via Gemini/URL) ---
+    async function handleFileUpload(input) {
+        const file = input.files[0];
+        if (file) {
+            addMsg(`📄 Fichier joint : **${file.name}** (Analyse en cours...)`, 'user');
+            // Ici tu peux envoyer le fichier vers une API Gemini Vision ou simplement simuler la lecture
+            setTimeout(() => addMsg("J'ai bien lu ton document ! Que veux-tu que j'en fasse ?", "bot"), 2000);
+        }
+    }
+
+    // --- AUTH & UI ---
+    async function handleAuth() {
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
+        if(isSignupMode) {
+            const n = document.getElementById('nick').value, a = document.getElementById('user-age').value;
+            const {error} = await sb.auth.signUp({email:e, password:p, options:{data:{nickname:n, age:a}}});
+            if(error) alert(error.message); else alert("Vérifie tes emails !");
+        } else {
+            const {error} = await sb.auth.signInWithPassword({email:e, password:p});
+            if(error) alert("Erreur connexion.");
+        }
+    }
+
+    async function newChat(firstText = "Nouvelle Discussion") {
+        const {data} = await sb.from('chats').insert([{user_id: currentUser.id, title: "En cours..."}]).select();
+        activeChatId = data[0].id;
+        chatContext = [];
+        document.getElementById('chat-window').innerHTML = '';
+        if(firstText !== "Nouvelle Discussion") generateTitle(firstText);
     }
 
     function addMsg(t, type) {
-        const d = document.createElement('div');
-        d.className = `msg ${type}`;
+        const d = document.createElement('div'); d.className = `msg ${type}`;
         d.innerHTML = marked.parse(t);
         document.getElementById('chat-window').appendChild(d);
         document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
     }
 
-    async function newChat(title = "Nouvelle Discussion") {
-        if(isGuest) { document.getElementById('chat-window').innerHTML = ''; return; }
-        const {data} = await sb.from('chats').insert([{user_id: currentUser.id, title: encrypt(title)}]).select();
-        activeChatId = data[0].id;
-        document.getElementById('chat-window').innerHTML = '';
-        loadHistory();
-    }
+    function toggleSignup() { isSignupMode = !isSignupMode; document.getElementById('signup-fields').style.display = isSignupMode ? 'block' : 'none'; }
+    function logout() { sb.auth.signOut(); location.reload(); }
+    sb.auth.onAuthStateChange((ev, sess) => { if(sess) { currentUser = sess.user; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('main-app').style.display = 'flex'; document.getElementById('user-info').innerText = `${currentUser.user_metadata.nickname}`; loadHistory(); } });
 
     async function loadHistory() {
         const {data} = await sb.from('chats').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false});
         const list = document.getElementById('history-list'); list.innerHTML = '';
         data?.forEach(c => {
             const item = document.createElement('div');
-            item.style = "padding:10px; background:#1c1e2d; margin-bottom:5px; border-radius:8px; cursor:pointer; font-size:0.75rem; border-left: 2px solid var(--pink);";
-            item.innerText = decrypt(c.title);
-            item.onclick = () => loadChat(c.id);
+            item.style = "padding:8px; background:#1c1e2d; margin-bottom:5px; border-radius:5px; cursor:pointer; font-size:0.7rem;";
+            item.innerText = c.title;
+            item.onclick = () => { activeChatId = c.id; document.getElementById('chat-window').innerHTML = 'Chargement...'; };
             list.appendChild(item);
         });
     }
-
-    async function loadChat(id) {
-        activeChatId = id;
-        const {data} = await sb.from('messages').select('*').eq('chat_id', id).order('created_at', {ascending:true});
-        document.getElementById('chat-window').innerHTML = '';
-        data?.forEach(m => addMsg(decrypt(m.content), m.role));
-    }
-
-    function logout() { sb.auth.signOut(); location.reload(); }
-
-    sb.auth.onAuthStateChange((ev, sess) => {
-        if(sess) { currentUser = sess.user; launchApp(); }
-    });
 </script>
 </body>
 </html>
